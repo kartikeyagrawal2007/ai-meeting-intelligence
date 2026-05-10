@@ -29,12 +29,15 @@ class AssemblyAIProvider:
             headers=self.headers,
             json={
                 "audio_url": audio_url,
-                "speech_model": "universal-2",
+                "speech_models": ["universal-2"],
                 "speaker_labels": True,
                 "language_detection": True,
             }
         )
-        transcript_id = response.json()["id"]
+        response_data = response.json()
+        if "error" in response_data:
+            raise RuntimeError(f"Transcription request failed: {response_data['error']}")
+        transcript_id = response_data["id"]
         
         # Poll for completion
         polling_url = f"{self.base_url}/v2/transcript/{transcript_id}"
