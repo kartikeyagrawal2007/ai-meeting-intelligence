@@ -1,0 +1,72 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Project-specific outputs
+outputs/audio/*.mp3
+outputs/audio/*.wav
+outputs/recaps/*.md
+*.mp3
+*.wav
+*.aiff
+*_clean.*
+*_recap.md
+
+# Keep sample data but ignore large files
+data/samples/*.mp3
+data/samples/*.wav
+!data/samples/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+logs/
+
+# Model weights and caches
+models/
+*.pt
+*.pth
+*.ckpt
+torch_cache/
+transformers_cache/
+
+# Benchmark results
+benchmark/results/
+benchmark/outputs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
