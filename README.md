@@ -178,6 +178,16 @@ GROQ_TEMPERATURE = 0.1
 - [ ] Multi-model comparison (AssemblyAI vs Whisper)
 - [ ] Diarization accuracy metrics
 
+
+## Benchmark Results
+
+| Model | WER | CER | Time |
+|------|------|------|------|
+| AssemblyAI | 0.0667 | 0.0449 | 2.31s |
+| Whisper Large-v3 | 0.4000 | 0.2135 | 5.84s |
+
+
+
 ### Phase 3: Real-Time Systems
 - [ ] Streaming audio ingestion
 - [ ] Incremental transcription

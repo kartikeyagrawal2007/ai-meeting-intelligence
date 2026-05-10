@@ -1,6 +1,7 @@
 import sys
 import os
 
+from intelligence.sentiment import analyze_sentiment
 from analytics.participation import analyze_participation
 from analytics.interruptions import analyze_interruptions
 from audio.preprocess import preprocess_audio
@@ -9,6 +10,7 @@ from transcription.transcriber import transcribe_audio
 from transcription.formatter import format_transcript
 
 from intelligence.extractor import extract_intelligence
+from intelligence.correction import correct_transcript
 
 from output.recap import render_recap
 from output.export_json import export_to_json
@@ -21,7 +23,8 @@ log = get_logger(__name__)
 def analyze_meeting(
     audio_path: str,
     meeting_title: str = "Meeting",
-    skip_preprocess: bool = False
+    skip_preprocess: bool = False,
+    skip_correction: bool = False
 ) -> dict:
 
     # -----------------------------
@@ -39,6 +42,14 @@ def analyze_meeting(
     transcript = transcribe_audio(clean_path)
 
     # -----------------------------
+    # Transcript correction
+    # -----------------------------
+    if skip_correction:
+        log.info("Skipping transcript correction")
+    else:
+        transcript = correct_transcript(transcript)
+
+    # -----------------------------
     # Participation analytics
     # -----------------------------
     participation_stats = analyze_participation(transcript)
@@ -49,8 +60,6 @@ def analyze_meeting(
     # -----------------------------
     formatted = format_transcript(transcript)
 
-    log.info("\n--- TRANSCRIPT ---\n" + formatted)
-
     print("\n--- TRANSCRIPT ---")
     print(formatted)
 
@@ -60,25 +69,43 @@ def analyze_meeting(
     print("\n=== PARTICIPATION ANALYTICS ===")
 
     for speaker, stats in participation_stats.items():
-
         print(f"\nSpeaker {speaker}")
-        print(f"Speaking Time: {stats['speaking_time_seconds']} sec")
-        print(f"Speaking Share: {stats['speaking_share_percent']}%")
-        print(f"Utterances: {stats['utterance_count']}")
-        print(f"Avg Words/Utterance: {stats['average_words_per_utterance']}")
-        print(f"Longest Streak: {stats['longest_speaking_streak_seconds']} sec")
+        print(f"  Speaking Time   : {stats['speaking_time_seconds']} sec")
+        print(f"  Speaking Share  : {stats['speaking_share_percent']}%")
+        print(f"  Utterances      : {stats['utterance_count']}")
+        print(f"  Avg Words/Turn  : {stats['average_words_per_utterance']}")
+        print(f"  Longest Streak  : {stats['longest_speaking_streak_seconds']} sec")
 
+    # -----------------------------
+    # Print interruption analytics
+    # -----------------------------
     print("\n=== INTERRUPTION ANALYTICS ===")
 
     if interruptions:
         for item in interruptions[:5]:
             print(
-                f"{item['interrupter']} interrupted "
+                f"  {item['interrupter']} interrupted "
                 f"{item['interrupted']} "
                 f"({item['overlap_ms']} ms overlap)"
             )
     else:
-        print("No interruptions detected")
+        print("  No interruptions detected")
+
+    # -----------------------------
+    # Sentiment analysis
+    # -----------------------------
+    sentiment = analyze_sentiment(transcript)
+
+    print("\n=== SENTIMENT ANALYSIS ===")
+    for speaker, summary in sentiment.get("speaker_summary", {}).items():
+        print(f"\nSpeaker {speaker}")
+        print(f"  Overall Sentiment : {summary['overall_sentiment']}")
+        print(f"  Average Score     : {summary['average_score']}")
+        print(f"  Dominant Emotion  : {summary['dominant_emotion']}")
+        print(f"  Frustrated        : {summary['flags']['frustrated_count']} times")
+        print(f"  Confused          : {summary['flags']['confused_count']} times")
+        print(f"  Agreeable         : {summary['flags']['agreeable_count']} times")
+        print(f"  Decisive          : {summary['flags']['decisive_count']} times")
 
     # -----------------------------
     # Intelligence extraction
@@ -96,30 +123,29 @@ def analyze_meeting(
     # -----------------------------
     # Save markdown recap
     # -----------------------------
-    recap_output_path = (
-        audio_path.rsplit(".", 1)[0] + "_recap.md"
-    )
+    recap_output_path = audio_path.rsplit(".", 1)[0] + "_recap.md"
 
     with open(recap_output_path, "w") as f:
         f.write(recap)
 
-    log.info(f"Recap saved to: {recap_output_path}")
+    print(f"\nRecap saved to: {recap_output_path}")
 
     # -----------------------------
     # Export analytics JSON
     # -----------------------------
     analytics_output = {
-        "participation": participation_stats
+        "meeting_title": meeting_title,
+        "participation": participation_stats,
+        "interruptions": interruptions,
+        "sentiment": sentiment,
+        "intelligence": intelligence
     }
 
-    analytics_output_path = (
-        "../outputs/analytics/meeting_analytics.json"
-    )
+    os.makedirs("../outputs/analytics", exist_ok=True)
+    analytics_output_path = "../outputs/analytics/meeting_analytics.json"
 
-    export_to_json(
-        analytics_output,
-        analytics_output_path
-    )
+    export_to_json(analytics_output, analytics_output_path)
+    print(f"Analytics saved to: {analytics_output_path}")
 
     return intelligence
 
@@ -129,19 +155,14 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(
             "Usage: python main.py <audio_file> "
-            "[meeting_title] [--skip-preprocess]"
+            "[meeting_title] [--skip-preprocess] [--skip-correction]"
         )
         sys.exit(1)
 
     audio_path = sys.argv[1]
-
-    meeting_title = (
-        sys.argv[2]
-        if len(sys.argv) > 2
-        else "Meeting"
-    )
-
+    meeting_title = sys.argv[2] if len(sys.argv) > 2 else "Meeting"
     skip_preprocess = "--skip-preprocess" in sys.argv
+    skip_correction = "--skip-correction" in sys.argv
 
     if not os.path.exists(audio_path):
         print(f"File not found: {audio_path}")
@@ -150,5 +171,6 @@ if __name__ == "__main__":
     analyze_meeting(
         audio_path,
         meeting_title,
-        skip_preprocess
+        skip_preprocess,
+        skip_correction
     )
