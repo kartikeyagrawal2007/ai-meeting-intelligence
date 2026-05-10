@@ -1,29 +1,70 @@
 def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
     lines = [f"# Meeting Recap: {meeting_title}\n"]
 
+    # -----------------------------
+    # Action Items
+    # -----------------------------
     action_items = intelligence.get("action_items", [])
+
     if action_items:
         lines.append("## Action Items")
         for item in action_items:
             deadline = f" — due {item['deadline']}" if item.get("deadline") else ""
             owner = item.get("owner", "Unassigned")
-            lines.append(f"- [ ] **{owner}**: {item['action']}{deadline}")
+            confidence = item.get("confidence", None)
+
+            # confidence badge
+            if confidence is not None:
+                if confidence >= 0.9:
+                    badge = "🟢"
+                elif confidence >= 0.7:
+                    badge = "🟡"
+                else:
+                    badge = "🔴"
+                conf_str = f" {badge} `{int(confidence * 100)}% confident`"
+            else:
+                conf_str = ""
+
+            lines.append(f"- [ ] **{owner}**: {item['action']}{deadline}{conf_str}")
+
             if item.get("source_quote"):
                 lines.append(f"  > *\"{item['source_quote']}\"*")
     else:
         lines.append("## Action Items\n- None identified")
 
+    # -----------------------------
+    # Decisions Made
+    # -----------------------------
     decisions = intelligence.get("decisions", [])
+
     if decisions:
         lines.append("\n## Decisions Made")
         for d in decisions:
-            lines.append(f"- {d['decision']}")
+            confidence = d.get("confidence", None)
+
+            if confidence is not None:
+                if confidence >= 0.9:
+                    badge = "🟢"
+                elif confidence >= 0.7:
+                    badge = "🟡"
+                else:
+                    badge = "🔴"
+                conf_str = f" {badge} `{int(confidence * 100)}%`"
+            else:
+                conf_str = ""
+
+            lines.append(f"- {d['decision']}{conf_str}")
+
             if d.get("source_quote"):
                 lines.append(f"  > *\"{d['source_quote']}\"*")
     else:
         lines.append("\n## Decisions Made\n- None identified")
 
+    # -----------------------------
+    # Follow-ups
+    # -----------------------------
     follow_ups = intelligence.get("follow_ups", [])
+
     if follow_ups:
         lines.append("\n## Follow-ups")
         for f in follow_ups:
@@ -34,7 +75,11 @@ def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
     else:
         lines.append("\n## Follow-ups\n- None identified")
 
+    # -----------------------------
+    # Open Questions
+    # -----------------------------
     open_questions = intelligence.get("open_questions", [])
+
     if open_questions:
         lines.append("\n## Open Questions")
         for q in open_questions:

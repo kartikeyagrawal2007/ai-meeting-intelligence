@@ -2,11 +2,11 @@
   "meeting_title": "Product Team Standup",
   "participation": {
     "A": {
-      "speaking_time_seconds": 60.74,
+      "speaking_time_seconds": 59.61,
       "speaking_share_percent": 100.0,
-      "utterance_count": 1,
-      "average_words_per_utterance": 146.0,
-      "longest_speaking_streak_seconds": 60.74
+      "utterance_count": 16,
+      "average_words_per_utterance": 9.06,
+      "longest_speaking_streak_seconds": 6.56
     }
   },
   "interruptions": [],
@@ -15,7 +15,187 @@
       {
         "speaker": "A",
         "start_sec": 0,
-        "text": "John says, okay team, let's get started. Sarah, can you give us an update on the...",
+        "text": "John says, \"Okay, team, let's get started.\"",
+        "sentiment": "positive",
+        "score": 0.6,
+        "emotion": "confident",
+        "energy": "high",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 3,
+        "text": "Sarah, can you give us an update on the mobile app?",
+        "sentiment": "neutral",
+        "score": 0.0,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": false
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 7,
+        "text": "Sarah says, we finished the login screen, but we are blocked on the payment inte...",
+        "sentiment": "neutral",
+        "score": 0.1,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": true,
+          "is_confused": false,
+          "is_agreeable": false,
+          "is_decisive": false
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 13,
+        "text": "We need the API keys from the backend team.",
+        "sentiment": "neutral",
+        "score": 0.0,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": false,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 17,
+        "text": "John says, Rahul, can you send those API keys to Sarah by tomorrow?",
+        "sentiment": "neutral",
+        "score": 0.1,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 22,
+        "text": "Rahul says, \"Yes, I will send them by the end of day tomorrow.\"",
+        "sentiment": "positive",
+        "score": 0.6,
+        "emotion": "confident",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 26,
+        "text": "John says, Sarah, once you have the keys, what is your timeline for finishing pa...",
+        "sentiment": "neutral",
+        "score": 0.0,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": false
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 33,
+        "text": "Sarah says, I can finish it by next Friday if I get the keys tomorrow.",
+        "sentiment": "positive",
+        "score": 0.6,
+        "emotion": "confident",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 38,
+        "text": "John says, okay, so the deadline for payment integration is next Friday.",
+        "sentiment": "neutral",
+        "score": 0.0,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": false,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 44,
+        "text": "Rahul will also share the database migration report by Wednesday.",
+        "sentiment": "neutral",
+        "score": 0.2,
+        "emotion": "neutral",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 48,
+        "text": "Sarah will finish login documentation by Thursday.",
+        "sentiment": "positive",
+        "score": 0.6,
+        "emotion": "confident",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": true
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 52,
+        "text": "Any questions?",
+        "sentiment": "neutral",
+        "score": 0.0,
+        "emotion": "neutral",
+        "energy": "low",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": false
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 53,
+        "text": "Sarah says, \"No, that is clear.\"",
         "sentiment": "neutral",
         "score": 0.2,
         "emotion": "confident",
@@ -26,19 +206,64 @@
           "is_agreeable": true,
           "is_decisive": true
         }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 56,
+        "text": "Rahul says, \"All good.\"",
+        "sentiment": "positive",
+        "score": 0.6,
+        "emotion": "neutral",
+        "energy": "low",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": false
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 57,
+        "text": "John says, \"Great, talk soon.\"",
+        "sentiment": "positive",
+        "score": 0.8,
+        "emotion": "happy",
+        "energy": "medium",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": true,
+          "is_decisive": false
+        }
+      },
+      {
+        "speaker": "A",
+        "start_sec": 60,
+        "text": "Everyone.",
+        "sentiment": "neutral",
+        "score": 0.0,
+        "emotion": "neutral",
+        "energy": "low",
+        "flags": {
+          "is_frustrated": false,
+          "is_confused": false,
+          "is_agreeable": false,
+          "is_decisive": false
+        }
       }
     ],
     "speaker_summary": {
       "A": {
-        "average_score": 0.2,
-        "overall_sentiment": "neutral",
-        "dominant_emotion": "confident",
-        "utterance_count": 1,
+        "average_score": 0.275,
+        "overall_sentiment": "positive",
+        "dominant_emotion": "neutral",
+        "utterance_count": 16,
         "flags": {
-          "frustrated_count": 0,
+          "frustrated_count": 1,
           "confused_count": 0,
-          "agreeable_count": 1,
-          "decisive_count": 1
+          "agreeable_count": 12,
+          "decisive_count": 9
         }
       }
     }
@@ -48,37 +273,41 @@
       {
         "action": "send API keys to Sarah",
         "owner": "Rahul",
-        "deadline": "end of day tomorrow",
-        "source_quote": "Rahul says, yes, I will send them by the end of day tomorrow"
+        "deadline": "by the end of day tomorrow",
+        "confidence": 0.98,
+        "source_quote": "Yes, I will send them by the end of day tomorrow"
       },
       {
         "action": "finish payment integration",
         "owner": "Sarah",
         "deadline": "next Friday",
-        "source_quote": "Sarah says, I can finish it by next Friday if I get the keys tomorrow"
+        "confidence": 0.92,
+        "source_quote": "I can finish it by next Friday if I get the keys tomorrow"
       },
       {
         "action": "share database migration report",
         "owner": "Rahul",
         "deadline": "Wednesday",
+        "confidence": 0.95,
         "source_quote": "Rahul will also share the database migration report by Wednesday"
       },
       {
         "action": "finish login documentation",
         "owner": "Sarah",
         "deadline": "Thursday",
-        "source_quote": "Sarah will finish the login documentation by Thursday"
+        "confidence": 0.95,
+        "source_quote": "Sarah will finish login documentation by Thursday"
       }
     ],
     "decisions": [
       {
-        "decision": "payment integration deadline is next Friday",
+        "decision": "set deadline for payment integration to next Friday",
         "decided_by": [
           "John",
-          "Sarah",
-          "Rahul"
+          "Sarah"
         ],
-        "source_quote": "John says, okay, so the deadline for payment integration is next Friday"
+        "confidence": 0.95,
+        "source_quote": "okay, so the deadline for payment integration is next Friday"
       }
     ],
     "follow_ups": [],

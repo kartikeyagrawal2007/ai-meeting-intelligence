@@ -1,6 +1,7 @@
 import sys
 import os
 
+from utils.chunker import chunk_utterances
 from intelligence.sentiment import analyze_sentiment
 from analytics.participation import analyze_participation
 from analytics.interruptions import analyze_interruptions
@@ -40,6 +41,11 @@ def analyze_meeting(
     # Transcription
     # -----------------------------
     transcript = transcribe_audio(clean_path)
+
+    # -----------------------------
+    # Utterance chunking
+    # -----------------------------
+    transcript = chunk_utterances(transcript, max_words=30)
 
     # -----------------------------
     # Transcript correction
