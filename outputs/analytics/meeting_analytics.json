@@ -47,7 +47,7 @@
         "start_sec": 7,
         "text": "Sarah says, we finished the login screen, but we are blocked on the payment inte...",
         "sentiment": "neutral",
-        "score": 0.1,
+        "score": 0.2,
         "emotion": "neutral",
         "energy": "medium",
         "flags": {
@@ -77,7 +77,7 @@
         "start_sec": 17,
         "text": "John says, Rahul, can you send those API keys to Sarah by tomorrow?",
         "sentiment": "neutral",
-        "score": 0.1,
+        "score": 0.2,
         "emotion": "neutral",
         "energy": "medium",
         "flags": {
@@ -255,7 +255,7 @@
     ],
     "speaker_summary": {
       "A": {
-        "average_score": 0.275,
+        "average_score": 0.287,
         "overall_sentiment": "positive",
         "dominant_emotion": "neutral",
         "utterance_count": 16,
@@ -273,7 +273,7 @@
       {
         "action": "send API keys to Sarah",
         "owner": "Rahul",
-        "deadline": "by the end of day tomorrow",
+        "deadline": "end of day tomorrow",
         "confidence": 0.98,
         "source_quote": "Yes, I will send them by the end of day tomorrow"
       },
@@ -299,9 +299,10 @@
         "source_quote": "Sarah will finish login documentation by Thursday"
       }
     ],
+    "uncertain_action_items": [],
     "decisions": [
       {
-        "decision": "set deadline for payment integration to next Friday",
+        "decision": "payment integration deadline is next Friday",
         "decided_by": [
           "John",
           "Sarah"
@@ -310,6 +311,7 @@
         "source_quote": "okay, so the deadline for payment integration is next Friday"
       }
     ],
+    "uncertain_decisions": [],
     "follow_ups": [],
     "open_questions": []
   }

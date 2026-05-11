@@ -13,7 +13,6 @@ def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
             owner = item.get("owner", "Unassigned")
             confidence = item.get("confidence", None)
 
-            # confidence badge
             if confidence is not None:
                 if confidence >= 0.9:
                     badge = "🟢"
@@ -86,5 +85,35 @@ def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
             lines.append(f"- {q['question']} *(asked by {q['asked_by']})*")
     else:
         lines.append("\n## Open Questions\n- None identified")
+
+    # -----------------------------
+    # Uncertain / needs review
+    # -----------------------------
+    uncertain_actions = intelligence.get("uncertain_action_items", [])
+    uncertain_decisions = intelligence.get("uncertain_decisions", [])
+
+    if uncertain_actions or uncertain_decisions:
+        lines.append("\n## ⚠️ Needs Human Review")
+        lines.append("*Low confidence — verify these manually*\n")
+
+        for item in uncertain_actions:
+            confidence = item.get("confidence", 0)
+            owner = item.get("owner", "Unassigned")
+            deadline = f" — due {item['deadline']}" if item.get("deadline") else ""
+            lines.append(
+                f"- [ ] **{owner}**: {item['action']}{deadline} "
+                f"🔴 `{int(confidence * 100)}% confident`"
+            )
+            if item.get("source_quote"):
+                lines.append(f"  > *\"{item['source_quote']}\"*")
+
+        for item in uncertain_decisions:
+            confidence = item.get("confidence", 0)
+            lines.append(
+                f"- {item['decision']} "
+                f"🔴 `{int(confidence * 100)}%`"
+            )
+            if item.get("source_quote"):
+                lines.append(f"  > *\"{item['source_quote']}\"*")
 
     return "\n".join(lines)
