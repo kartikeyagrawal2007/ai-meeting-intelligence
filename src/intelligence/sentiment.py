@@ -38,8 +38,9 @@ def analyze_sentiment(transcript: dict) -> dict:
         log.warning("No utterances found, skipping sentiment")
         return {}
 
-    # batch into groups of 50 to stay within token limits
-    batch_size = 50
+    # batch into groups of 20 to stay within token limits
+    Utterances = utterances[:50]
+    batch_size = 10
     all_results = []
 
     for batch_start in range(0, len(utterances), batch_size):

@@ -26,6 +26,7 @@ def analyze_meeting(
     meeting_title: str = "Meeting",
     skip_preprocess: bool = False,
     skip_correction: bool = False,
+    skip_sentiment: bool = False,
     provider: str = "assemblyai"
 ) -> dict:
 
@@ -38,9 +39,6 @@ def analyze_meeting(
         else preprocess_audio(audio_path)
     )
 
-    # -----------------------------
-    # Transcription
-    # -----------------------------
     # -----------------------------
     # Transcription
     # -----------------------------
@@ -104,18 +102,21 @@ def analyze_meeting(
     # -----------------------------
     # Sentiment analysis
     # -----------------------------
-    sentiment = analyze_sentiment(transcript)
-
-    print("\n=== SENTIMENT ANALYSIS ===")
-    for speaker, summary in sentiment.get("speaker_summary", {}).items():
-        print(f"\nSpeaker {speaker}")
-        print(f"  Overall Sentiment : {summary['overall_sentiment']}")
-        print(f"  Average Score     : {summary['average_score']}")
-        print(f"  Dominant Emotion  : {summary['dominant_emotion']}")
-        print(f"  Frustrated        : {summary['flags']['frustrated_count']} times")
-        print(f"  Confused          : {summary['flags']['confused_count']} times")
-        print(f"  Agreeable         : {summary['flags']['agreeable_count']} times")
-        print(f"  Decisive          : {summary['flags']['decisive_count']} times")
+    if skip_sentiment:
+        log.info("Skipping sentiment analysis")
+        sentiment = {}
+    else:
+        sentiment = analyze_sentiment(transcript)
+        print("\n=== SENTIMENT ANALYSIS ===")
+        for speaker, summary in sentiment.get("speaker_summary", {}).items():
+            print(f"\nSpeaker {speaker}")
+            print(f"  Overall Sentiment : {summary['overall_sentiment']}")
+            print(f"  Average Score     : {summary['average_score']}")
+            print(f"  Dominant Emotion  : {summary['dominant_emotion']}")
+            print(f"  Frustrated        : {summary['flags']['frustrated_count']} times")
+            print(f"  Confused          : {summary['flags']['confused_count']} times")
+            print(f"  Agreeable         : {summary['flags']['agreeable_count']} times")
+            print(f"  Decisive          : {summary['flags']['decisive_count']} times")
 
     # -----------------------------
     # Intelligence extraction
@@ -165,7 +166,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(
             "Usage: python main.py <audio_file> "
-            "[meeting_title] [--skip-preprocess] [--skip-correction]"
+            "[meeting_title] [--skip-preprocess] [--skip-correction] "
+            "[--skip-sentiment] [--groq]"
         )
         sys.exit(1)
 
@@ -173,6 +175,7 @@ if __name__ == "__main__":
     meeting_title = sys.argv[2] if len(sys.argv) > 2 else "Meeting"
     skip_preprocess = "--skip-preprocess" in sys.argv
     skip_correction = "--skip-correction" in sys.argv
+    skip_sentiment = "--skip-sentiment" in sys.argv
     provider = "groq" if "--groq" in sys.argv else "assemblyai"
 
     if not os.path.exists(audio_path):
@@ -184,5 +187,6 @@ if __name__ == "__main__":
         meeting_title,
         skip_preprocess,
         skip_correction,
+        skip_sentiment,
         provider
     )
