@@ -12,8 +12,20 @@ CONFIDENCE_THRESHOLD = 0.75
 
 def extract_intelligence(transcript: dict) -> dict:
     log.info("Extracting action items, decisions, and follow-ups...")
-    transcript_text = utterances_to_text(transcript)
+    
+    # for long transcripts, only use first 100 utterances for extraction
+    # to stay within token limits
+    utterances = transcript.get("utterances", [])
+    if len(utterances) > 100:
+        log.info(f"  Long transcript ({len(utterances)} utterances), sampling first 100 for extraction")
+        sampled = transcript.copy()
+        sampled["utterances"] = utterances[:100]
+        transcript_text = utterances_to_text(sampled)
+    else:
+        transcript_text = utterances_to_text(transcript)
+    
     prompt = EXTRACTION_PROMPT.format(transcript_text=transcript_text)
+
 
     response = client.chat.completions.create(
         model=GROQ_MODEL,

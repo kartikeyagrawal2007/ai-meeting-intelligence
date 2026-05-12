@@ -6,16 +6,16 @@ import json
 log = get_logger(__name__)
 client = Groq(api_key=GROQ_API_KEY)
 
-SENTIMENT_PROMPT = """\
-You are a sentiment analysis engine for meeting transcripts.
+BATCH_SENTIMENT_PROMPT = """\
+You are a sentiment analysis engine. Analyze the sentiment of each utterance below.
 
-Analyze the sentiment of this single utterance from a meeting.
+Return ONLY a valid JSON array — one object per utterance in the same order.
+No explanation, no markdown.
 
-Return ONLY valid JSON, no explanation, no markdown.
-
+Each object must have:
 {{
   "sentiment": "positive" | "negative" | "neutral",
-  "score": <float between -1.0 (very negative) and 1.0 (very positive)>,
+  "score": float between -1.0 and 1.0,
   "emotion": "neutral" | "happy" | "frustrated" | "confused" | "confident" | "anxious" | "angry",
   "energy": "high" | "medium" | "low",
   "flags": {{
@@ -26,80 +26,97 @@ Return ONLY valid JSON, no explanation, no markdown.
   }}
 }}
 
-Utterance:
-{text}
+Utterances:
+{utterances_text}
 """
 
-def analyze_utterance_sentiment(text: str) -> dict:
-    try:
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{
-                "role": "user",
-                "content": SENTIMENT_PROMPT.format(text=text)
-            }],
-            temperature=0.1,
-        )
-
-        raw = response.choices[0].message.content.strip()
-
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.rsplit("```", 1)[0]
-
-        return json.loads(raw.strip())
-
-    except Exception as e:
-        log.warning(f"Sentiment analysis failed for utterance: {e}")
-        return {
-            "sentiment": "neutral",
-            "score": 0.0,
-            "emotion": "neutral",
-            "energy": "medium",
-            "flags": {
-                "is_frustrated": False,
-                "is_confused": False,
-                "is_agreeable": False,
-                "is_decisive": False
-            }
-        }
-
 def analyze_sentiment(transcript: dict) -> dict:
-    log.info("Analyzing sentiment...")
+    log.info("Analyzing sentiment (batch mode)...")
 
     utterances = transcript.get("utterances", [])
     if not utterances:
         log.warning("No utterances found, skipping sentiment")
         return {}
 
-    # per utterance sentiment
+    # batch into groups of 50 to stay within token limits
+    batch_size = 50
+    all_results = []
+
+    for batch_start in range(0, len(utterances), batch_size):
+        batch = utterances[batch_start:batch_start + batch_size]
+
+        # format batch as numbered list
+        lines = []
+        for i, utt in enumerate(batch):
+            text = utt.get("text", "").strip()
+            lines.append(f"{i+1}. [{utt.get('speaker')}]: {text}")
+
+        utterances_text = "\n".join(lines)
+
+        try:
+            response = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[{
+                    "role": "user",
+                    "content": BATCH_SENTIMENT_PROMPT.format(
+                        utterances_text=utterances_text
+                    )
+                }],
+                temperature=0.1,
+            )
+
+            raw = response.choices[0].message.content.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+                raw = raw.rsplit("```", 1)[0]
+
+            batch_results = json.loads(raw.strip())
+            all_results.extend(batch_results)
+            log.info(f"  Batch {batch_start//batch_size + 1}: {len(batch_results)} utterances analyzed")
+
+        except Exception as e:
+            log.warning(f"  Batch sentiment failed: {e}")
+            # fill with neutral for failed batch
+            for _ in batch:
+                all_results.append({
+                    "sentiment": "neutral",
+                    "score": 0.0,
+                    "emotion": "neutral",
+                    "energy": "medium",
+                    "flags": {
+                        "is_frustrated": False,
+                        "is_confused": False,
+                        "is_agreeable": False,
+                        "is_decisive": False
+                    }
+                })
+
+    # build timeline and speaker summary
     timeline = []
     speaker_sentiments = {}
 
-    for utt in utterances:
+    for i, utt in enumerate(utterances):
+        if i >= len(all_results):
+            break
+
         speaker = utt.get("speaker", "Unknown")
-        text = utt.get("text", "").strip()
         start_sec = utt.get("start", 0) // 1000
-
-        if not text:
-            continue
-
-        result = analyze_utterance_sentiment(text)
+        text = utt.get("text", "")
+        result = all_results[i]
 
         timeline.append({
             "speaker": speaker,
             "start_sec": start_sec,
             "text": text[:80] + "..." if len(text) > 80 else text,
-            "sentiment": result["sentiment"],
-            "score": result["score"],
-            "emotion": result["emotion"],
-            "energy": result["energy"],
-            "flags": result["flags"]
+            "sentiment": result.get("sentiment", "neutral"),
+            "score": result.get("score", 0.0),
+            "emotion": result.get("emotion", "neutral"),
+            "energy": result.get("energy", "medium"),
+            "flags": result.get("flags", {})
         })
 
-        # accumulate per speaker
         if speaker not in speaker_sentiments:
             speaker_sentiments[speaker] = {
                 "scores": [],
@@ -112,8 +129,8 @@ def analyze_sentiment(transcript: dict) -> dict:
                 }
             }
 
-        speaker_sentiments[speaker]["scores"].append(result["score"])
-        speaker_sentiments[speaker]["emotions"].append(result["emotion"])
+        speaker_sentiments[speaker]["scores"].append(result.get("score", 0.0))
+        speaker_sentiments[speaker]["emotions"].append(result.get("emotion", "neutral"))
 
         flags = result.get("flags", {})
         if flags.get("is_frustrated"):
@@ -125,7 +142,7 @@ def analyze_sentiment(transcript: dict) -> dict:
         if flags.get("is_decisive"):
             speaker_sentiments[speaker]["flags"]["decisive_count"] += 1
 
-    # compute per speaker summary
+    # compute speaker summary
     speaker_summary = {}
     for speaker, data in speaker_sentiments.items():
         scores = data["scores"]
@@ -151,7 +168,7 @@ def analyze_sentiment(transcript: dict) -> dict:
             "flags": data["flags"]
         }
 
-    log.info(f"Sentiment analysis complete for {len(speaker_summary)} speakers.")
+    log.info(f"Sentiment complete. {len(timeline)} utterances, {len(speaker_summary)} speakers.")
 
     return {
         "timeline": timeline,

@@ -1,3 +1,4 @@
+import json
 from groq import Groq
 from utils.config import GROQ_API_KEY, GROQ_MODEL
 from utils.logger import get_logger
@@ -5,70 +6,99 @@ from utils.logger import get_logger
 log = get_logger(__name__)
 client = Groq(api_key=GROQ_API_KEY)
 
-CORRECTION_PROMPT = """\
-You are a transcript correction engine. Fix the following transcript text.
-
-Rules:
-- Remove filler words: um, uh, like, you know, basically, literally
-- Fix false starts: "I I was going" → "I was going"
-- Fix obvious speech recognition errors based on context
-- Fix punctuation and capitalization
-- Do NOT change meaning or remove actual content
-- Do NOT add information not in the original
-- Return ONLY the corrected text, nothing else — no labels, no timestamps
-
-Text to correct:
-{text}
-"""
 
 def correct_transcript(transcript: dict) -> dict:
-    log.info("Correcting transcript...")
+    log.info("Correcting transcript (batch mode)...")
 
     utterances = transcript.get("utterances", [])
     if not utterances:
         log.warning("No utterances found, skipping correction")
         return transcript
 
-    corrected_utterances = []
+    # separate short utterances (keep as-is) from long ones (correct)
+    to_correct = []
+    to_skip = []
 
-    for utt in utterances:
-        original_text = utt.get("text", "").strip()
-        if not original_text:
-            corrected_utterances.append(utt)
-            continue
+    for i, utt in enumerate(utterances):
+        text = utt.get("text", "").strip()
+        if len(text.split()) < 8:
+            to_skip.append((i, utt))
+        else:
+            to_correct.append((i, utt))
+
+    log.info(f"  {len(to_correct)} utterances to correct, {len(to_skip)} skipped (too short)")
+
+    corrected_map = {}
+
+    # batch correct in groups of 20
+    batch_size = 20
+    for batch_start in range(0, len(to_correct), batch_size):
+        batch = to_correct[batch_start:batch_start + batch_size]
+
+        numbered = "\n".join(
+            f"{j+1}. {utt['text']}"
+            for j, (_, utt) in enumerate(batch)
+        )
+
+        prompt = f"""Fix these transcript segments. Remove filler words (um, uh, like, you know), fix false starts, fix punctuation and capitalization, fix obvious speech recognition errors.
+
+Return ONLY a JSON array of corrected strings in the same order. No explanation, no markdown.
+
+Example input:
+1. um so we we need to finalize the the budget
+2. yeah i think uh that makes sense
+
+Example output:
+["So we need to finalize the budget.", "Yeah, I think that makes sense."]
+
+Now correct these:
+{numbered}"""
 
         try:
             response = client.chat.completions.create(
                 model=GROQ_MODEL,
-                messages=[{
-                    "role": "user",
-                    "content": CORRECTION_PROMPT.format(text=original_text)
-                }],
+                messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
             )
 
-            corrected_text = response.choices[0].message.content.strip()
+            raw = response.choices[0].message.content.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+                raw = raw.rsplit("```", 1)[0]
 
-            # make sure LLM didn't return a formatted line accidentally
-            if "]: " in corrected_text:
-                corrected_text = corrected_text.split("]: ", 1)[1].strip()
+            corrected_texts = json.loads(raw.strip())
 
-            if corrected_text and corrected_text != original_text:
-                log.info(f"  Corrected utterance for Speaker {utt.get('speaker')}")
+            for j, (orig_idx, orig_utt) in enumerate(batch):
+                if j < len(corrected_texts):
+                    updated = orig_utt.copy()
+                    corrected = corrected_texts[j]
+                    if isinstance(corrected, str) and corrected.strip():
+                        updated["text"] = corrected.strip()
+                    corrected_map[orig_idx] = updated
+                else:
+                    corrected_map[orig_idx] = orig_utt
 
-            updated = utt.copy()
-            updated["text"] = corrected_text if corrected_text else original_text
-            corrected_utterances.append(updated)
+            log.info(f"  Batch {batch_start//batch_size + 1}: corrected {len(batch)} utterances")
 
         except Exception as e:
-            log.warning(f"  Correction failed for utterance, keeping original: {e}")
-            corrected_utterances.append(utt)
+            log.warning(f"  Batch correction failed: {e}, keeping originals")
+            for orig_idx, orig_utt in batch:
+                corrected_map[orig_idx] = orig_utt
+
+    # add skipped utterances back unchanged
+    for orig_idx, orig_utt in to_skip:
+        corrected_map[orig_idx] = orig_utt
+
+    # rebuild in original order
+    all_corrected = [corrected_map[i] for i in range(len(utterances))]
 
     corrected_transcript = transcript.copy()
-    corrected_transcript["utterances"] = corrected_utterances
+    corrected_transcript["utterances"] = all_corrected
     corrected_transcript["text"] = " ".join(
-        utt["text"] for utt in corrected_utterances
+        utt["text"] for utt in all_corrected
     )
 
-    log.info(f"Correction complete. {len(corrected_utterances)} utterances processed.")
+    log.info(f"Correction complete. {len(all_corrected)} utterances processed.")
     return corrected_transcript

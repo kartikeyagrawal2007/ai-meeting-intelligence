@@ -25,7 +25,8 @@ def analyze_meeting(
     audio_path: str,
     meeting_title: str = "Meeting",
     skip_preprocess: bool = False,
-    skip_correction: bool = False
+    skip_correction: bool = False,
+    provider: str = "assemblyai"
 ) -> dict:
 
     # -----------------------------
@@ -40,7 +41,10 @@ def analyze_meeting(
     # -----------------------------
     # Transcription
     # -----------------------------
-    transcript = transcribe_audio(clean_path)
+    # -----------------------------
+    # Transcription
+    # -----------------------------
+    transcript = transcribe_audio(clean_path, provider=provider)
 
     # -----------------------------
     # Utterance chunking
@@ -169,6 +173,7 @@ if __name__ == "__main__":
     meeting_title = sys.argv[2] if len(sys.argv) > 2 else "Meeting"
     skip_preprocess = "--skip-preprocess" in sys.argv
     skip_correction = "--skip-correction" in sys.argv
+    provider = "groq" if "--groq" in sys.argv else "assemblyai"
 
     if not os.path.exists(audio_path):
         print(f"File not found: {audio_path}")
@@ -178,5 +183,6 @@ if __name__ == "__main__":
         audio_path,
         meeting_title,
         skip_preprocess,
-        skip_correction
+        skip_correction,
+        provider
     )
