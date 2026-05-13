@@ -6,6 +6,11 @@ import json
 log = get_logger(__name__)
 client = Groq(api_key=GROQ_API_KEY)
 
+# Maximum utterances to send for sentiment analysis (token budget guard)
+MAX_SENTIMENT_UTTERANCES = 80
+# Number of equal time windows to sample from (temporal stratification)
+SENTIMENT_WINDOWS = 8
+
 BATCH_SENTIMENT_PROMPT = """\
 You are a sentiment analysis engine. Analyze the sentiment of each utterance below.
 
@@ -30,21 +35,89 @@ Utterances:
 {utterances_text}
 """
 
+
+def _sample_utterances_by_time(
+    utterances: list,
+    max_count: int,
+    n_windows: int,
+) -> tuple[list, list[int]]:
+    """
+    Stratified temporal sampling: divide the meeting timeline into
+    `n_windows` equal time buckets and sample proportionally from each.
+
+    Returns:
+        sampled_utterances: the selected utterances (ordered by time)
+        original_indices:   their positions in the original list (for mapping results back)
+    """
+    if len(utterances) <= max_count:
+        return utterances, list(range(len(utterances)))
+
+    # Prefer timestamp-based windows; fall back to index-based if no timestamps
+    has_timestamps = all("start" in u for u in utterances)
+
+    if has_timestamps:
+        t_start = utterances[0]["start"]
+        t_end = utterances[-1]["end"] if "end" in utterances[-1] else utterances[-1]["start"]
+        duration = max(t_end - t_start, 1)
+        window_size = duration / n_windows
+
+        # Assign each utterance to a window
+        buckets: list[list[int]] = [[] for _ in range(n_windows)]
+        for idx, utt in enumerate(utterances):
+            w = int((utt["start"] - t_start) / window_size)
+            w = min(w, n_windows - 1)
+            buckets[w].append(idx)
+    else:
+        # Fallback: index-based even split
+        log.debug("No timestamps found — using index-based stratified sampling")
+        bucket_size = max(len(utterances) // n_windows, 1)
+        buckets = [
+            list(range(i, min(i + bucket_size, len(utterances))))
+            for i in range(0, len(utterances), bucket_size)
+        ]
+
+    # Allocate slots per window proportionally (at least 1 per non-empty window)
+    non_empty = [b for b in buckets if b]
+    per_window = max(1, max_count // max(len(non_empty), 1))
+
+    selected_indices: list[int] = []
+    for bucket in non_empty:
+        # Distribute evenly inside the bucket
+        step = max(1, len(bucket) // per_window)
+        selected_indices.extend(bucket[::step][:per_window])
+
+    # Trim if we overshot (rounding), preserve time order
+    selected_indices = sorted(set(selected_indices))[:max_count]
+
+    sampled = [utterances[i] for i in selected_indices]
+    log.info(
+        f"  Sentiment sampling: {len(utterances)} utterances → "
+        f"{len(sampled)} sampled across {len(non_empty)} time windows"
+    )
+    return sampled, selected_indices
+
+
 def analyze_sentiment(transcript: dict) -> dict:
-    log.info("Analyzing sentiment (batch mode)...")
+    log.info("Analyzing sentiment (batch mode, temporal sampling)...")
 
     utterances = transcript.get("utterances", [])
     if not utterances:
         log.warning("No utterances found, skipping sentiment")
         return {}
 
-    # batch into groups of 20 to stay within token limits
-    Utterances = utterances[:50]
+    # ----------------------------------------------------------------
+    # Smarter sampling: pick utterances spread across the full timeline
+    # instead of just truncating at first 50
+    # ----------------------------------------------------------------
+    sampled_utterances, sampled_indices = _sample_utterances_by_time(
+        utterances, MAX_SENTIMENT_UTTERANCES, SENTIMENT_WINDOWS
+    )
+
     batch_size = 10
     all_results = []
 
-    for batch_start in range(0, len(utterances), batch_size):
-        batch = utterances[batch_start:batch_start + batch_size]
+    for batch_start in range(0, len(sampled_utterances), batch_size):
+        batch = sampled_utterances[batch_start:batch_start + batch_size]
 
         # format batch as numbered list
         lines = []
@@ -94,11 +167,13 @@ def analyze_sentiment(transcript: dict) -> dict:
                     }
                 })
 
-    # build timeline and speaker summary
+    # Build timeline: map results back to the SAMPLED utterances (not all utterances)
+    # sampled_utterances[i] corresponds to all_results[i], and maps to
+    # utterances[sampled_indices[i]] in the original transcript.
     timeline = []
     speaker_sentiments = {}
 
-    for i, utt in enumerate(utterances):
+    for i, utt in enumerate(sampled_utterances):
         if i >= len(all_results):
             break
 
@@ -110,6 +185,7 @@ def analyze_sentiment(transcript: dict) -> dict:
         timeline.append({
             "speaker": speaker,
             "start_sec": start_sec,
+            "original_index": sampled_indices[i],  # preserve position in original transcript
             "text": text[:80] + "..." if len(text) > 80 else text,
             "sentiment": result.get("sentiment", "neutral"),
             "score": result.get("score", 0.0),
