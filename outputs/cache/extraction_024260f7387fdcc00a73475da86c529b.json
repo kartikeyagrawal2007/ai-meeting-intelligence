@@ -1,0 +1,39 @@
+{
+  "cached_at": "2026-05-13T05:33:27.734652",
+  "namespace": "extraction",
+  "key": "024260f7387fdcc00a73475da86c529b",
+  "data": {
+    "action_items": [
+      {
+        "action": "send quotation for services",
+        "owner": "Speaker A",
+        "deadline": "null",
+        "confidence": 0.92,
+        "source_quote": "I will send you a quotation and we can discuss further"
+      },
+      {
+        "action": "share Google Meet link for next meeting",
+        "owner": "Speaker A",
+        "deadline": "null",
+        "confidence": 0.92,
+        "source_quote": "I will also share a Google Meet link for our next meeting"
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society registration and maintenance collection",
+        "reason": "society has not been formed yet",
+        "owner": "null"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "what to do next for society registration and maintenance collection",
+        "asked_by": "Speaker A"
+      }
+    ]
+  }
+}

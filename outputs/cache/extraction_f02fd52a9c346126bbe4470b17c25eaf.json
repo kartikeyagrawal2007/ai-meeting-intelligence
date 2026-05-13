@@ -1,0 +1,49 @@
+{
+  "cached_at": "2026-05-13T09:08:17.661746",
+  "namespace": "extraction",
+  "key": "f02fd52a9c346126bbe4470b17c25eaf",
+  "data": {
+    "action_items": [
+      {
+        "action": "arrange a demonstration of the gate management module",
+        "owner": "Speaker A",
+        "deadline": "immediately",
+        "confidence": 0.92,
+        "source_quote": "If you are available, I will arrange a demonstration for you immediately, which will be a completely recorded session"
+      },
+      {
+        "action": "provide a quotation for the application's services",
+        "owner": "No Brokerhood product team",
+        "deadline": "after demonstration",
+        "confidence": 0.85,
+        "source_quote": "The quotation will be given; they will provide you with the proper quotation, which will be completely negotiable"
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society establishment and handover",
+        "reason": "society has not been formally established yet",
+        "owner": "null"
+      },
+      {
+        "topic": "implementation of No Brokerhood application",
+        "reason": "pending demonstration and quotation",
+        "owner": "null"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What is the exact timeline for the society's establishment and handover?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "What are the final costs and quotation for the No Brokerhood application's services?",
+        "asked_by": "Speaker A"
+      }
+    ],
+    "high_level_summary": "The meeting was between Speaker A and an unnamed individual, discussing the No Brokerhood application and its potential use for gate management and accounting management in the Ashwari Guru Shankul society. The society has not been formally established yet, but the speaker is interested in exploring the application's features. The conversation covered the benefits of using the application, including improved security and streamlined maintenance collection. A demonstration of the gate management module was offered, and the possibility of a recorded session was discussed. The meeting concluded with an agreement to arrange a demonstration and provide a quotation for the application's services."
+  }
+}

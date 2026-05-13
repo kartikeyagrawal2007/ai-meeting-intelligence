@@ -1,12 +1,80 @@
 {
-  "meeting_title": "Product Team Standup",
+  "meeting_title": "Call Recording Test",
+  "quality_score": {
+    "total": 70.0,
+    "rating": "Good",
+    "sub_scores": {
+      "participation": 50.0,
+      "sentiment": 50.0,
+      "decision_and_actions": 100.0,
+      "interruption_control": 100.0,
+      "engagement_consistency": 50.0
+    },
+    "breakdown": {
+      "participation": {
+        "raw_balance": 100.0,
+        "silence_penalty": 0.0,
+        "final": 50.0
+      },
+      "sentiment": {
+        "reason": "sentiment not run, defaulting to 50"
+      },
+      "decision": {
+        "base_from_rate": 100.0,
+        "high_confidence_bonus": 5,
+        "uncertainty_penalty": 0,
+        "final": 100.0
+      },
+      "interruption": {
+        "base_from_rate": 100.0,
+        "repeat_interrupter_penalty": 0.0,
+        "final": 100.0
+      },
+      "engagement": {
+        "reason": "insufficient data"
+      },
+      "weights": {
+        "participation": 0.25,
+        "sentiment": 0.25,
+        "decision": 0.25,
+        "interruption": 0.15,
+        "engagement": 0.1
+      }
+    },
+    "diagnostics": {
+      "participation": {
+        "n_speakers": 1,
+        "gini_coefficient": 0.0,
+        "silent_speakers": 0,
+        "speaking_shares": {
+          "A": 100.0
+        }
+      },
+      "sentiment": {},
+      "decision": {
+        "action_items": 2,
+        "decisions": 0,
+        "uncertain_items": 0,
+        "follow_ups": 2,
+        "meeting_minutes_estimated": 9.2,
+        "rate_per_10min": 2.17
+      },
+      "interruption": {
+        "total_interruptions": 0,
+        "total_utterances": 144,
+        "interruption_rate": 0.0,
+        "repeat_interrupters": {}
+      },
+      "engagement": {}
+    }
+  },
   "participation": {
     "A": {
-      "speaking_time_seconds": 59.61,
+      "speaking_time_seconds": 441.65,
       "speaking_share_percent": 100.0,
-      "utterance_count": 16,
-      "average_words_per_utterance": 9.0,
-      "longest_speaking_streak_seconds": 6.56
+      "utterance_count": 144,
+      "average_words_per_utterance": 7.99,
+      "longest_speaking_streak_seconds": 20.72
     }
   },
   "interruptions": [],
@@ -14,48 +82,44 @@
   "intelligence": {
     "action_items": [
       {
-        "action": "send API keys to Sarah",
-        "owner": "Rahul",
-        "deadline": "end of day tomorrow",
-        "confidence": 0.98,
-        "source_quote": "yes, I will send them by end of day tomorrow"
+        "action": "check the gate management module",
+        "owner": "Speaker A",
+        "deadline": "before the society handover",
+        "confidence": 0.8,
+        "source_quote": "You can check it once"
       },
       {
-        "action": "finish payment integration",
-        "owner": "Sarah",
-        "deadline": "next Friday",
-        "confidence": 0.92,
-        "source_quote": "I can finish it by next Friday if I get the keys tomorrow"
-      },
-      {
-        "action": "share database migration report",
-        "owner": "Rahul",
-        "deadline": "Wednesday",
-        "confidence": 0.95,
-        "source_quote": "Rahul will also share the database migration report by Wednesday"
-      },
-      {
-        "action": "finish login documentation",
-        "owner": "Sarah",
-        "deadline": "Thursday",
-        "confidence": 0.95,
-        "source_quote": "Sarah will finish login documentation by Thursday"
+        "action": "arrange a 10-15 minute online demo on Google Meet",
+        "owner": "Speaker A",
+        "deadline": "as soon as possible",
+        "confidence": 0.9,
+        "source_quote": "So, we will confirm the availability for 10-15 minutes and arrange it with the team"
       }
     ],
     "uncertain_action_items": [],
-    "decisions": [
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
       {
-        "decision": "set deadline for payment integration to next Friday",
-        "decided_by": [
-          "John",
-          "Sarah"
-        ],
-        "confidence": 0.95,
-        "source_quote": "okay, so the deadline for payment integration is next Friday"
+        "topic": "society registration and handover",
+        "reason": "registration process not yet completed",
+        "owner": null
+      },
+      {
+        "topic": "implementation of gate management module",
+        "reason": "pending demo and discussion",
+        "owner": null
       }
     ],
-    "uncertain_decisions": [],
-    "follow_ups": [],
-    "open_questions": []
+    "open_questions": [
+      {
+        "question": "What is the exact number of flats in the society?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "Will the society handover occur in December?",
+        "asked_by": "Speaker A"
+      }
+    ]
   }
 }

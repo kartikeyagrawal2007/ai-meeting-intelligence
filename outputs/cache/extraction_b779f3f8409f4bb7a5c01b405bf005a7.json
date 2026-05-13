@@ -1,0 +1,55 @@
+{
+  "cached_at": "2026-05-13T08:59:17.437952",
+  "namespace": "extraction",
+  "key": "b779f3f8409f4bb7a5c01b405bf005a7",
+  "data": {
+    "action_items": [
+      {
+        "action": "check the gate management module",
+        "owner": "Speaker A",
+        "deadline": "next two, three months",
+        "confidence": 0.8,
+        "source_quote": "Okay, so sir, you can check the gate management module"
+      },
+      {
+        "action": "arrange a demonstration for the gate management module",
+        "owner": "Speaker A",
+        "deadline": "immediately",
+        "confidence": 0.9,
+        "source_quote": "If you are available, I will arrange a demonstration for you immediately"
+      },
+      {
+        "action": "provide a quotation for the gate management module",
+        "owner": "No Brokerhood product team",
+        "deadline": "after demonstration",
+        "confidence": 0.8,
+        "source_quote": "The quotation will be given; they will provide you with a proper quotation"
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society registration and handover",
+        "reason": "society has not been formed yet",
+        "owner": null
+      },
+      {
+        "topic": "implementation of the gate management module",
+        "reason": "pending demonstration and quotation",
+        "owner": null
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What are the charges for the gate management module?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "How will the society registration and handover process be completed?",
+        "asked_by": "Speaker A"
+      }
+    ]
+  }
+}

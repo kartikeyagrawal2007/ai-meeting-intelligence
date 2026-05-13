@@ -2,6 +2,14 @@ def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
     lines = [f"# Meeting Recap: {meeting_title}\n"]
 
     # -----------------------------
+    # Executive Summary
+    # -----------------------------
+    summary = intelligence.get("high_level_summary", "")
+    if summary:
+        lines.append("## Executive Summary")
+        lines.append(f"{summary}\n")
+
+    # -----------------------------
     # Action Items
     # -----------------------------
     action_items = intelligence.get("action_items", [])

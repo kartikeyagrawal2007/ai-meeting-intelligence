@@ -1,0 +1,55 @@
+{
+  "cached_at": "2026-05-13T08:57:18.119068",
+  "namespace": "extraction",
+  "key": "96ca5651e2c6a21c457f2282fd34aad6",
+  "data": {
+    "action_items": [
+      {
+        "action": "schedule a demo for the society",
+        "owner": "Speaker A",
+        "deadline": "next meeting",
+        "confidence": 0.85,
+        "source_quote": "तो सर जी अगर आप आपके लिए देता डेमोस्टे जो की कम्पलीट रिकॉर्डेड सेशन रहेगा"
+      },
+      {
+        "action": "share the recorded demo session with society members",
+        "owner": "Speaker A",
+        "deadline": "after the demo",
+        "confidence": 0.9,
+        "source_quote": "रिकॉर्डेड सेशन रहेगा तो वो रिकॉर्ड सोसाइटी मेंबर के साथ आप शेयर कर सकते है"
+      },
+      {
+        "action": "negotiate the quotation with the society",
+        "owner": "Speaker A",
+        "deadline": "after receiving the quotation",
+        "confidence": 0.8,
+        "source_quote": "कोटेशन आएगा प्रॉपर कोटेशन भी आपको प्रोवाइड करेंगे जो की कम्प्लीटली नेगोशिएबल होगा"
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society registration and handover",
+        "reason": "pending registration and handover process",
+        "owner": null
+      },
+      {
+        "topic": "implementation of gate management and accounting management modules",
+        "reason": "pending demo and quotation",
+        "owner": null
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What are the exact requirements of the society for the gate management and accounting management modules?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "What is the expected timeline for the society registration and handover?",
+        "asked_by": "Speaker A"
+      }
+    ]
+  }
+}

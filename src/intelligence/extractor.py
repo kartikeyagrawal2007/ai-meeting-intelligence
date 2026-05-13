@@ -78,6 +78,7 @@ def extract_intelligence(transcript: dict) -> dict:
         "uncertain_decisions": uncertain_decisions,
         "follow_ups": data.get("follow_ups", []),
         "open_questions": data.get("open_questions", []),
+        "high_level_summary": data.get("high_level_summary", ""),
     }
 
     log.info(

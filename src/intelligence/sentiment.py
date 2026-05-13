@@ -1,7 +1,10 @@
-from groq import Groq
+from __future__ import annotations
+
+from groq import Groq  # type: ignore[import-untyped]
 from utils.config import GROQ_API_KEY, GROQ_MODEL
 from utils.logger import get_logger
 import json
+
 
 log = get_logger(__name__)
 client = Groq(api_key=GROQ_API_KEY)

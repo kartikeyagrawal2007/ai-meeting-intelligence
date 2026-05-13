@@ -5,6 +5,7 @@ from utils.chunker import chunk_utterances
 from intelligence.sentiment import analyze_sentiment
 from analytics.participation import analyze_participation
 from analytics.interruptions import analyze_interruptions
+from analytics.quality_score import compute_quality_score, format_quality_report
 from audio.preprocess import preprocess_audio
 
 from transcription.transcriber import transcribe_audio
@@ -124,6 +125,19 @@ def analyze_meeting(
     intelligence = extract_intelligence(transcript)
 
     # -----------------------------
+    # Meeting quality scoring
+    # (pure analytics — no extra API calls)
+    # -----------------------------
+    quality = compute_quality_score(
+        participation=participation_stats,
+        interruptions=interruptions,
+        sentiment=sentiment,
+        intelligence=intelligence,
+    )
+
+    print(format_quality_report(quality))
+
+    # -----------------------------
     # Generate recap
     # -----------------------------
     recap = render_recap(intelligence, meeting_title)
@@ -146,10 +160,23 @@ def analyze_meeting(
     # -----------------------------
     analytics_output = {
         "meeting_title": meeting_title,
+        "quality_score": {
+            "total": quality.total,
+            "rating": quality.rating,
+            "sub_scores": {
+                "participation": quality.participation_score,
+                "sentiment": quality.sentiment_score,
+                "decision_and_actions": quality.decision_score,
+                "interruption_control": quality.interruption_score,
+                "engagement_consistency": quality.engagement_score,
+            },
+            "breakdown": quality.breakdown,
+            "diagnostics": quality.diagnostics,
+        },
         "participation": participation_stats,
         "interruptions": interruptions,
         "sentiment": sentiment,
-        "intelligence": intelligence
+        "intelligence": intelligence,
     }
 
     os.makedirs("../outputs/analytics", exist_ok=True)
