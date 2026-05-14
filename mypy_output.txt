@@ -1,0 +1,34 @@
+src/transcription/providers/assemblyai_provider.py:2: error: Library stubs not installed for "requests"  [import-untyped]
+src/transcription/providers/assemblyai_provider.py:2: note: Hint: "python3 -m pip install types-requests"
+src/transcription/providers/assemblyai_provider.py:9: error: Incompatible default for parameter "api_key" (default has type "None", parameter has type "str")  [assignment]
+src/transcription/providers/assemblyai_provider.py:9: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+src/transcription/providers/assemblyai_provider.py:9: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+src/audio/filters.py:2: error: Library stubs not installed for "scipy.signal"  [import-untyped]
+src/audio/filters.py:3: error: Library stubs not installed for "scipy.ndimage"  [import-untyped]
+src/transcription/providers/groq_whisper_provider.py:61: error: Incompatible return value type (got "tuple[list[str], float]", expected "list[str]")  [return-value]
+src/intelligence/correction.py:64: error: Item "None" of "str | None" has no attribute "strip"  [union-attr]
+src/intelligence/extractor.py:36: error: Item "None" of "str | None" has no attribute "strip"  [union-attr]
+src/intelligence/sentiment.py:145: error: Item "None" of "str | None" has no attribute "strip"  [union-attr]
+src/intelligence/sentiment.py:212: error: "Collection[str]" has no attribute "append"  [attr-defined]
+src/intelligence/sentiment.py:213: error: "Collection[str]" has no attribute "append"  [attr-defined]
+src/intelligence/sentiment.py:217: error: Value of type "Collection[str]" is not indexable  [index]
+src/intelligence/sentiment.py:217: error: Unsupported target for indexed assignment ("Collection[str]")  [index]
+src/intelligence/sentiment.py:219: error: Value of type "Collection[str]" is not indexable  [index]
+src/intelligence/sentiment.py:219: error: Unsupported target for indexed assignment ("Collection[str]")  [index]
+src/intelligence/sentiment.py:221: error: Value of type "Collection[str]" is not indexable  [index]
+src/intelligence/sentiment.py:221: error: Unsupported target for indexed assignment ("Collection[str]")  [index]
+src/intelligence/sentiment.py:223: error: Value of type "Collection[str]" is not indexable  [index]
+src/intelligence/sentiment.py:223: error: Unsupported target for indexed assignment ("Collection[str]")  [index]
+src/intelligence/sentiment.py:229: error: Argument 1 to "sum" has incompatible type "Collection[str]"; expected "Iterable[bool]"  [arg-type]
+src/intelligence/sentiment.py:240: error: "Collection[str]" has no attribute "count"  [attr-defined]
+src/transcription/transcriber.py:15: error: Incompatible types in assignment (expression has type "GroqWhisperProvider", variable has type "AssemblyAIProvider")  [assignment]
+src/audio/preprocess.py:5: error: Skipping analyzing "noisereduce": module is installed, but missing library stubs or py.typed marker  [import-untyped]
+src/audio/preprocess.py:7: error: Library stubs not installed for "scipy.io"  [import-untyped]
+src/audio/preprocess.py:7: note: Hint: "python3 -m pip install scipy-stubs"
+src/audio/preprocess.py:7: note: (or run "mypy --install-types" to install all missing stub packages)
+src/audio/preprocess.py:7: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+src/api/router.py:111: error: Need type annotation for "intelligence" (hint: "intelligence: dict[<type>, <type>] = ...")  [var-annotated]
+src/api/router.py:117: error: Incompatible types in assignment (expression has type "dict[Any, Any] | None", variable has type "dict[Any, Any]")  [assignment]
+src/api/router.py:179: error: Argument 1 to "Path" has incompatible type "str | None"; expected "str | PathLike[str]"  [arg-type]
+src/api/router.py:195: error: Argument "audio_filename" to "create_job" has incompatible type "str | None"; expected "str"  [arg-type]
+Found 27 errors in 9 files (checked 1 source file)

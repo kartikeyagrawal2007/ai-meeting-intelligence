@@ -1,14 +1,28 @@
 import os
-from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+def _load_env():
+    env_path = Path(__file__).resolve().parent.parent.parent / '.env'
+    if env_path.exists():
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, val = line.split('=', 1)
+                    os.environ[key.strip()] = val.strip().strip("'\"")
+
+_load_env()
 
 # API
 ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 
 # AssemblyAI
 ASSEMBLYAI_BASE_URL = "https://api.assemblyai.com"
+
+# Sarvam
+SARVAM_BASE_URL = "https://api.sarvam.ai"
 
 # Groq
 GROQ_MODEL = "llama-3.3-70b-versatile"

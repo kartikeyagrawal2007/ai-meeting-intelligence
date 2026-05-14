@@ -42,7 +42,7 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [title, setTitle] = useState("");
-  const [provider, setProvider] = useState<"assemblyai" | "groq">("assemblyai");
+  const [provider, setProvider] = useState<"assemblyai" | "groq" | "sarvam">("assemblyai");
   const [skipPreprocess, setSkipPreprocess] = useState(false);
   const [skipCorrection, setSkipCorrection] = useState(false);
   const [skipSentiment, setSkipSentiment] = useState(false);
@@ -50,7 +50,6 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Drag & drop handlers
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(true);
@@ -88,6 +87,12 @@ export default function UploadPage() {
   const formatBytes = (b: number) =>
     b > 1_000_000 ? `${(b / 1_000_000).toFixed(1)} MB` : `${(b / 1024).toFixed(0)} KB`;
 
+  const providerInfo = {
+    assemblyai: { label: "🎙 AssemblyAI", desc: "Best diarization & accuracy" },
+    groq: { label: "⚡ Groq Whisper", desc: "Fast, multilingual" },
+    sarvam: { label: "🇮🇳 Sarvam AI", desc: "Best for Hinglish & Indian languages" },
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-2xl mx-auto">
       {/* Header */}
@@ -116,7 +121,7 @@ export default function UploadPage() {
           className={cn(
             "relative border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all duration-200 text-center",
             dragging
-              ? "border-indigo-500 bg-indigo-500/8 shadow-lg shadow-indigo-500/10 dropzone-active"
+              ? "border-indigo-500 bg-indigo-500/8 shadow-lg shadow-indigo-500/10"
               : file
               ? "border-indigo-500/40 bg-indigo-500/5"
               : "border-[#1e293b] bg-[#111827] hover:border-slate-600 hover:bg-[#131e30]"
@@ -181,25 +186,25 @@ export default function UploadPage() {
           <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
             Transcription Provider
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {(["assemblyai", "groq"] as const).map((p) => (
+          <div className="grid grid-cols-3 gap-2">
+            {(["assemblyai", "groq", "sarvam"] as const).map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setProvider(p)}
                 className={cn(
-                  "py-3 rounded-xl text-sm font-medium border transition-all duration-150",
+                  "py-3 px-2 rounded-xl text-sm font-medium border transition-all duration-150",
                   provider === p
                     ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
                     : "bg-[#111827] border-[#1e293b] text-slate-400 hover:text-slate-300 hover:border-slate-600"
                 )}
               >
-                {p === "assemblyai" ? "🎙 AssemblyAI" : "⚡ Groq Whisper"}
+                {providerInfo[p].label}
               </button>
             ))}
           </div>
           <p className="text-xs text-slate-600 mt-2">
-            AssemblyAI provides speaker diarization · Groq Whisper is faster but single-speaker
+            {providerInfo[provider].desc}
           </p>
         </div>
 

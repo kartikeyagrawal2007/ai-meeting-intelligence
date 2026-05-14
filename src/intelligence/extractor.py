@@ -27,20 +27,33 @@ def extract_intelligence(transcript: dict) -> dict:
     prompt = EXTRACTION_PROMPT.format(transcript_text=transcript_text)
 
 
-    response = client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=GROQ_TEMPERATURE,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=GROQ_TEMPERATURE,
+        )
 
-    raw = response.choices[0].message.content.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-        raw = raw.rsplit("```", 1)[0]
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.rsplit("```", 1)[0]
 
-    data = json.loads(raw.strip())
+        data = json.loads(raw.strip())
+
+    except Exception as e:
+        log.warning(f"Extraction skipped — Groq API unavailable: {e}")
+        return {
+            "action_items": [],
+            "uncertain_action_items": [],
+            "decisions": [],
+            "uncertain_decisions": [],
+            "follow_ups": [],
+            "open_questions": [],
+            "high_level_summary": "Intelligence extraction unavailable (Groq API blocked or unreachable).",
+        }
 
     # split into confirmed vs uncertain based on confidence
     confirmed_actions = []

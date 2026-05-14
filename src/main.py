@@ -194,16 +194,22 @@ if __name__ == "__main__":
         print(
             "Usage: python main.py <audio_file> "
             "[meeting_title] [--skip-preprocess] [--skip-correction] "
-            "[--skip-sentiment] [--groq]"
+            "[--skip-sentiment] [--groq] [--sarvam]"
         )
         sys.exit(1)
 
     audio_path = sys.argv[1]
-    meeting_title = sys.argv[2] if len(sys.argv) > 2 else "Meeting"
+    meeting_title = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else "Meeting"
     skip_preprocess = "--skip-preprocess" in sys.argv
     skip_correction = "--skip-correction" in sys.argv
     skip_sentiment = "--skip-sentiment" in sys.argv
-    provider = "groq" if "--groq" in sys.argv else "assemblyai"
+    
+    if "--sarvam" in sys.argv:
+        provider = "sarvam"
+    elif "--groq" in sys.argv:
+        provider = "groq"
+    else:
+        provider = "assemblyai"
 
     if not os.path.exists(audio_path):
         print(f"File not found: {audio_path}")

@@ -15,5 +15,10 @@ def transcribe_audio(audio_path: str, provider: str = "assemblyai") -> dict:
         transcriber = GroqWhisperProvider()
         return transcriber.transcribe(audio_path)
 
+    elif provider == "sarvam":
+        from transcription.providers.sarvam_provider import SarvamProvider
+        transcriber = SarvamProvider()
+        return transcriber.transcribe(audio_path)
+
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'assemblyai' or 'groq'")
+        raise ValueError(f"Unknown provider: {provider}. Use 'assemblyai', 'groq', or 'sarvam'")

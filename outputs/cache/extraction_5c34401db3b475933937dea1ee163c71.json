@@ -1,0 +1,56 @@
+{
+  "cached_at": "2026-05-14T23:45:20.957369",
+  "namespace": "extraction",
+  "key": "5c34401db3b475933937dea1ee163c71",
+  "data": {
+    "action_items": [
+      {
+        "action": "conduct a demonstration of the gate management system",
+        "owner": "Speaker A",
+        "deadline": "next meeting",
+        "confidence": 0.9,
+        "source_quote": "मैं आपको इसकी पहुंच प्रदान करा दूंगा सर"
+      },
+      {
+        "action": "share the recorded demonstration with society members",
+        "owner": "Speaker A",
+        "deadline": "after demonstration",
+        "confidence": 0.9,
+        "source_quote": "बाकी रिकॉर्डेड सेशन रहेगा तो जो नहीं जुड़ पा रहे हैं उनके साथ वो रिकॉर्डिंग आप साझा कर सकते हैं सर"
+      },
+      {
+        "action": "provide a quotation for the system implementation",
+        "owner": "Speaker A's team",
+        "deadline": "after demonstration",
+        "confidence": 0.8,
+        "source_quote": "वो सर, आपकी आवश्यकता के अनुसार हमारी जो प्रोडक्ट टीम है वो इसके अनुसार आपको समझा देगी सर"
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society registration and handover process",
+        "reason": "pending completion of registration process",
+        "owner": "Speaker A"
+      },
+      {
+        "topic": "system implementation and pricing",
+        "reason": "pending demonstration and quotation",
+        "owner": "Speaker A"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What are the exact charges for the system implementation?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "How will the system be customized to meet the society's specific needs?",
+        "asked_by": "Speaker A"
+      }
+    ],
+    "high_level_summary": "The meeting was between Speaker A and an unnamed individual, discussing the implementation of a gate management system for the speaker's society. The system is designed to improve security services and provide a better way for residents to manage guest entries and other activities. The speaker explained the features of the system, including a digital platform for marking entries and exits, and the ability to send pre-intimation cards to guests. The speaker also discussed the possibility of conducting a demonstration of the system and providing a recorded session for other society members to review. The meeting concluded with the speaker agreeing to share a Google Meet link for the demonstration and providing contact information for follow-up."
+  }
+}
