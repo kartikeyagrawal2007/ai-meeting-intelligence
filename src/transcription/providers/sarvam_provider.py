@@ -1,16 +1,28 @@
+"""
+transcription/providers/sarvam_provider.py
+──────────────────────────────────────────
+Sarvam REST API with chunking implementation.
+"""
+
+from __future__ import annotations
+
 import os
 import time
 import subprocess
 import tempfile
 import requests
+
 from utils.config import SARVAM_API_KEY, SARVAM_BASE_URL
 from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-CHUNK_DURATION_SEC = 25  # Stay safely under the 30-second REST API limit
+CHUNK_DURATION_SEC = 25
 REST_ENDPOINT = "/speech-to-text"
-
+DEFAULT_LANGUAGE_MODE = "codemix"
+SARVAM_CHUNK_DELAY_SEC = 1.5
+SARVAM_RETRY_DELAY_SEC = 10
+SARVAM_MAX_RETRIES = 3
 
 class SarvamProvider:
     def __init__(self, api_key: str = None):
@@ -21,24 +33,12 @@ class SarvamProvider:
         self.headers = {"api-subscription-key": self.api_key}
         self.rest_url = f"{self.base_url}{REST_ENDPOINT}"
 
-    # ------------------------------------------------------------------
-    # Public entry point
-    # ------------------------------------------------------------------
-
-    def transcribe(self, audio_path: str) -> dict:
-        """
-        Transcribe an audio file using Sarvam REST API.
-
-        Strategy:
-          1. Split the audio into CHUNK_DURATION_SEC-second chunks via ffmpeg.
-          2. Transcribe each chunk individually against the REST endpoint.
-          3. Merge results in order and return a unified response dict.
-        """
+    def transcribe(self, audio_path: str, language_mode: str = DEFAULT_LANGUAGE_MODE) -> dict:
         audio_path = os.path.abspath(audio_path)
         if not os.path.exists(audio_path):
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
-        log.info(f"[Sarvam] Starting transcription for: {audio_path}")
+        log.info(f"[Sarvam] Starting transcription: {audio_path} | mode={language_mode}")
 
         total_duration = self._get_duration_ffprobe(audio_path)
         log.info(f"[Sarvam] Audio duration: {total_duration:.2f}s")
@@ -47,53 +47,55 @@ class SarvamProvider:
             chunk_paths = self._split_audio(audio_path, tmp_dir, total_duration)
             log.info(f"[Sarvam] Split into {len(chunk_paths)} chunk(s)")
 
-            all_utterances = []
-            all_texts = []
+            sarvam_chunks: list[dict] = []
             time_offset_ms = 0
 
             for idx, (chunk_path, chunk_start_sec, chunk_dur_sec) in enumerate(chunk_paths):
-                log.info(f"[Sarvam] Transcribing chunk {idx + 1}/{len(chunk_paths)} "
-                         f"(offset {chunk_start_sec:.1f}s, dur {chunk_dur_sec:.1f}s)")
+                log.info(f"[Sarvam] Chunk {idx + 1}/{len(chunk_paths)} (offset {chunk_start_sec:.1f}s, dur {chunk_dur_sec:.1f}s)")
+                chunk_end_ms = time_offset_ms + int(chunk_dur_sec * 1000)
+
+                if idx > 0:
+                    time.sleep(SARVAM_CHUNK_DELAY_SEC)
+
                 try:
-                    transcript = self._transcribe_chunk(chunk_path)
+                    text = self._transcribe_chunk_with_retry(chunk_path, language_mode)
                 except Exception as e:
-                    log.error(f"[Sarvam] Chunk {idx + 1} failed: {e}. Skipping.")
-                    time_offset_ms += int(chunk_dur_sec * 1000)
+                    log.error(f"[Sarvam] Chunk {idx + 1} failed after retries: {e}. Skipping.")
+                    time_offset_ms = chunk_end_ms
                     continue
 
-                if transcript:
-                    all_texts.append(transcript)
-                    chunk_end_ms = time_offset_ms + int(chunk_dur_sec * 1000)
-                    all_utterances.append({
-                        "speaker": "A",
-                        "text": transcript,
-                        "start": time_offset_ms,
-                        "end": chunk_end_ms,
+                if text:
+                    sarvam_chunks.append({
+                        "start_ms": time_offset_ms,
+                        "end_ms": chunk_end_ms,
+                        "text": text,
                     })
+                time_offset_ms = chunk_end_ms
 
-                time_offset_ms += int(chunk_dur_sec * 1000)
+        full_text = " ".join(c["text"] for c in sarvam_chunks).strip()
+        
+        if sarvam_chunks:
+            start_ms = sarvam_chunks[0]["start_ms"]
+            end_ms = sarvam_chunks[-1]["end_ms"]
+        else:
+            start_ms = 0
+            end_ms = int(total_duration * 1000)
 
-        full_text = " ".join(all_texts).strip()
-        log.info(f"[Sarvam] Transcription complete. Total chars: {len(full_text)}")
+        utterances = [{
+            "speaker": "A",
+            "text": full_text,
+            "start": start_ms,
+            "end": end_ms
+        }]
 
         return {
             "id": f"sarvam_{int(time.time())}",
             "text": full_text,
-            "utterances": all_utterances if all_utterances else [{
-                "speaker": "A",
-                "text": full_text,
-                "start": 0,
-                "end": int(total_duration * 1000),
-            }],
+            "utterances": utterances,
             "status": "completed",
         }
 
-    # ------------------------------------------------------------------
-    # Audio helpers
-    # ------------------------------------------------------------------
-
     def _get_duration_ffprobe(self, audio_path: str) -> float:
-        """Return audio duration in seconds using ffprobe."""
         try:
             result = subprocess.run(
                 [
@@ -106,18 +108,12 @@ class SarvamProvider:
                 text=True,
                 timeout=30,
             )
-            duration = float(result.stdout.strip())
-            return duration
+            return float(result.stdout.strip())
         except Exception as e:
             log.warning(f"[Sarvam] ffprobe failed ({e}), defaulting to 60s duration.")
             return 60.0
 
     def _split_audio(self, audio_path: str, output_dir: str, total_duration: float) -> list:
-        """
-        Split audio into chunks of CHUNK_DURATION_SEC seconds using ffmpeg.
-
-        Returns a list of tuples: (chunk_path, start_sec, actual_chunk_duration_sec)
-        """
         chunks = []
         start = 0.0
 
@@ -132,13 +128,13 @@ class SarvamProvider:
                 "-i", audio_path,
                 "-ss", str(start),
                 "-t", str(chunk_dur),
-                "-ar", "16000",   # Sarvam works best at 16 kHz
-                "-ac", "1",       # Mono
+                "-ar", "16000",
+                "-ac", "1",
                 "-f", "wav",
                 chunk_path,
             ]
 
-            log.debug(f"[Sarvam] ffmpeg chunk cmd: {' '.join(cmd)}")
+            log.debug(f"[Sarvam] ffmpeg: {' '.join(cmd)}")
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
 
             if result.returncode != 0:
@@ -156,24 +152,28 @@ class SarvamProvider:
 
         return chunks
 
-    # ------------------------------------------------------------------
-    # REST API call
-    # ------------------------------------------------------------------
+    def _transcribe_chunk_with_retry(self, chunk_path: str, language_mode: str) -> str:
+        for attempt in range(1, SARVAM_MAX_RETRIES + 1):
+            try:
+                return self._transcribe_chunk(chunk_path, language_mode)
+            except RuntimeError as exc:
+                if "429" in str(exc) and attempt < SARVAM_MAX_RETRIES:
+                    wait = SARVAM_RETRY_DELAY_SEC * attempt
+                    log.warning(f"[Sarvam] Rate-limited (429). Waiting {wait}s before retry (attempt {attempt}/{SARVAM_MAX_RETRIES}) …")
+                    time.sleep(wait)
+                else:
+                    raise
 
-    def _transcribe_chunk(self, chunk_path: str) -> str:
-        """
-        POST a single audio chunk to Sarvam REST API and return the transcript string.
-        """
+    def _transcribe_chunk(self, chunk_path: str, language_mode: str) -> str:
         with open(chunk_path, "rb") as f:
             files = {
                 "file": (os.path.basename(chunk_path), f, "audio/wav"),
             }
             data = {
                 "model": "saaras:v3",
-                "mode": "codemix",
+                "mode": language_mode,
                 "language_code": "hi-IN",
             }
-            log.debug(f"[Sarvam] POST {self.rest_url} for {os.path.basename(chunk_path)}")
             response = requests.post(
                 self.rest_url,
                 headers=self.headers,
@@ -183,11 +183,7 @@ class SarvamProvider:
             )
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"Sarvam REST API error {response.status_code}: {response.text[:300]}"
-            )
+            raise RuntimeError(f"Sarvam REST API error {response.status_code}: {response.text[:300]}")
 
         result = response.json()
-        transcript = result.get("transcript", "").strip()
-        log.debug(f"[Sarvam] Chunk transcript ({len(transcript)} chars): {transcript[:80]!r}")
-        return transcript
+        return result.get("transcript", "").strip()
