@@ -6,6 +6,7 @@ scipy==1.17.1
 noisereduce==3.0.3
 torch==2.11.0
 torchaudio==2.11.0
+pyannote.audio>=3.3.2
 
 # APIs
 requests==2.33.1

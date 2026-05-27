@@ -1,12 +1,12 @@
 {
   "meeting_title": "Call Test",
   "quality_score": {
-    "total": 45.0,
-    "rating": "Needs Improvement",
+    "total": 70.0,
+    "rating": "Good",
     "sub_scores": {
       "participation": 50.0,
       "sentiment": 50.0,
-      "decision_and_actions": 0.0,
+      "decision_and_actions": 100.0,
       "interruption_control": 100.0,
       "engagement_consistency": 50.0
     },
@@ -20,10 +20,10 @@
         "reason": "sentiment not run, defaulting to 50"
       },
       "decision": {
-        "base_from_rate": 0.0,
-        "high_confidence_bonus": 0,
+        "base_from_rate": 100.0,
+        "high_confidence_bonus": 10,
         "uncertainty_penalty": 0,
-        "final": 0.0
+        "final": 100.0
       },
       "interruption": {
         "base_from_rate": 100.0,
@@ -52,16 +52,16 @@
       },
       "sentiment": {},
       "decision": {
-        "action_items": 0,
+        "action_items": 3,
         "decisions": 0,
         "uncertain_items": 0,
-        "follow_ups": 0,
-        "meeting_minutes_estimated": 10.4,
-        "rate_per_10min": 0.0
+        "follow_ups": 1,
+        "meeting_minutes_estimated": 10.3,
+        "rate_per_10min": 2.91
       },
       "interruption": {
         "total_interruptions": 0,
-        "total_utterances": 19,
+        "total_utterances": 2,
         "interruption_rate": 0.0,
         "repeat_interrupters": {}
       },
@@ -70,22 +70,59 @@
   },
   "participation": {
     "A": {
-      "speaking_time_seconds": 500.73,
+      "speaking_time_seconds": 495.26,
       "speaking_share_percent": 100.0,
-      "utterance_count": 19,
-      "average_words_per_utterance": 86.42,
-      "longest_speaking_streak_seconds": 106.42
+      "utterance_count": 2,
+      "average_words_per_utterance": 564.5,
+      "longest_speaking_streak_seconds": 461.44
     }
   },
   "interruptions": [],
   "sentiment": {},
   "intelligence": {
-    "action_items": [],
+    "action_items": [
+      {
+        "action": "schedule a demo for the society members",
+        "owner": "Speaker A",
+        "deadline": "next meeting",
+        "confidence": 0.85,
+        "source_quote": "\u0938\u0930 \u091c\u0940 \u0905\u0917\u0930 \u0906\u092a \u0906\u092a\u0915\u0947 \u0932\u093f\u090f \u0926\u0947\u0924\u093e \u0921\u0947\u092e\u094b\u0938\u094d\u091f\u0947 \u091c\u094b \u0915\u0940 \u0915\u092e\u094d\u092a\u0932\u0940\u091f \u0930\u093f\u0915\u0949\u0930\u094d\u0921\u0947\u0921 \u0938\u0947\u0936\u0928 \u0930\u0939\u0947\u0917\u093e"
+      },
+      {
+        "action": "share the recorded demo with society members",
+        "owner": "Speaker A",
+        "deadline": "after the demo",
+        "confidence": 0.85,
+        "source_quote": "\u0930\u093f\u0915\u0949\u0930\u094d\u0921\u0947\u0921 \u0938\u0947\u0936\u0928 \u0930\u0939\u0947\u0917\u093e \u0924\u094b \u0935\u094b \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0938\u094b\u0938\u093e\u0907\u091f\u0940 \u092e\u0947\u0902\u092c\u0930 \u0915\u0947 \u0938\u093e\u0925 \u0906\u092a \u0936\u0947\u092f\u0930 \u0915\u0930 \u0938\u0915\u0924\u0947 \u0939\u0948"
+      },
+      {
+        "action": "negotiate the quotation with the society",
+        "owner": "Speaker A",
+        "deadline": "after the demo",
+        "confidence": 0.8,
+        "source_quote": "\u0915\u094b\u091f\u0947\u0936\u0928 \u0906\u090f\u0917\u093e \u092a\u094d\u0930\u0949\u092a\u0930 \u0915\u094b\u091f\u0947\u0936\u0928 \u092d\u0940 \u0906\u092a\u0915\u094b \u092a\u094d\u0930\u094b\u0935\u093e\u0907\u0921 \u0915\u0930\u0947\u0902\u0917\u0947 \u091c\u094b \u0915\u0940 \u0915\u092e\u094d\u092a\u094d\u0932\u0940\u091f\u0932\u0940 \u0928\u0947\u0917\u094b\u0936\u093f\u090f\u092c\u0932 \u0939\u094b\u0917\u093e"
+      }
+    ],
     "uncertain_action_items": [],
     "decisions": [],
     "uncertain_decisions": [],
-    "follow_ups": [],
-    "open_questions": [],
-    "high_level_summary": "Intelligence extraction unavailable (Groq API blocked or unreachable)."
+    "follow_ups": [
+      {
+        "topic": "implementation of the gate management and accounting management system",
+        "reason": "pending demo and quotation",
+        "owner": "Speaker A"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "what are the specific requirements of the society for the system",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "what is the budget of the society for the system",
+        "asked_by": "Speaker A"
+      }
+    ],
+    "summary": "The meeting was about discussing the implementation of a gate management and accounting management system for a society, with the speaker explaining the features and benefits of the system and offering a demo to the society members."
   }
 }

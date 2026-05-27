@@ -8,7 +8,9 @@ def transcribe_audio(audio_path: str, provider: str = "assemblyai") -> dict:
 
     Args:
         audio_path: Path to the audio file.
-        provider: One of 'assemblyai', 'groq'.
+        provider: One of 'assemblyai', 'groq', 'pyannote'.
+                  'pyannote' → local speaker diarization (pyannote/speaker-diarization-3.1
+                  + pyannote/segmentation-3.0) combined with Groq Whisper transcription.
     """
 
     if provider == "assemblyai":
@@ -21,5 +23,10 @@ def transcribe_audio(audio_path: str, provider: str = "assemblyai") -> dict:
         transcriber = GroqWhisperProvider()
         return transcriber.transcribe(audio_path)
 
+    elif provider == "pyannote":
+        from transcription.providers.pyannote_provider import PyAnnoteProvider
+        transcriber = PyAnnoteProvider()
+        return transcriber.transcribe(audio_path)
+
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'assemblyai' or 'groq'")
+        raise ValueError(f"Unknown provider: {provider}. Use 'assemblyai', 'groq', or 'pyannote'")

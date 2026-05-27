@@ -42,7 +42,7 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [title, setTitle] = useState("");
-  const [provider, setProvider] = useState<"assemblyai" | "groq">("assemblyai");
+  const [provider, setProvider] = useState<"assemblyai" | "groq" | "pyannote">("assemblyai");
   const [skipPreprocess, setSkipPreprocess] = useState(false);
   const [skipCorrection, setSkipCorrection] = useState(false);
   const [skipSentiment, setSkipSentiment] = useState(false);
@@ -88,8 +88,9 @@ export default function UploadPage() {
     b > 1_000_000 ? `${(b / 1_000_000).toFixed(1)} MB` : `${(b / 1024).toFixed(0)} KB`;
 
   const providerInfo = {
-    assemblyai: { label: "🎙 AssemblyAI", desc: "Best accuracy with speaker diarization." },
-    groq: { label: "⚡ Groq Whisper", desc: "Fastest option." },
+    assemblyai: { label: "🎙 AssemblyAI",    desc: "Best accuracy — cloud diarization + transcription." },
+    groq:       { label: "⚡ Groq Whisper",  desc: "Fastest option. No speaker separation." },
+    pyannote:   { label: "🧠 PyAnnote AI",  desc: "Local on-device diarization (speaker-diarization-3.1 + segmentation-3.0) + Groq transcription. Best speaker accuracy." },
   };
 
   return (
@@ -185,8 +186,8 @@ export default function UploadPage() {
           <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
             Transcription Provider
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {(["assemblyai", "groq"] as const).map((p) => (
+          <div className="grid grid-cols-3 gap-2">
+            {(["assemblyai", "groq", "pyannote"] as const).map((p) => (
               <button
                 key={p}
                 type="button"
