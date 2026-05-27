@@ -1,12 +1,12 @@
 {
-  "meeting_title": "Call Recording Test",
+  "meeting_title": "Call Test",
   "quality_score": {
-    "total": 70.0,
-    "rating": "Good",
+    "total": 45.0,
+    "rating": "Needs Improvement",
     "sub_scores": {
       "participation": 50.0,
       "sentiment": 50.0,
-      "decision_and_actions": 100.0,
+      "decision_and_actions": 0.0,
       "interruption_control": 100.0,
       "engagement_consistency": 50.0
     },
@@ -20,10 +20,10 @@
         "reason": "sentiment not run, defaulting to 50"
       },
       "decision": {
-        "base_from_rate": 100.0,
-        "high_confidence_bonus": 5,
+        "base_from_rate": 0.0,
+        "high_confidence_bonus": 0,
         "uncertainty_penalty": 0,
-        "final": 100.0
+        "final": 0.0
       },
       "interruption": {
         "base_from_rate": 100.0,
@@ -52,16 +52,16 @@
       },
       "sentiment": {},
       "decision": {
-        "action_items": 2,
+        "action_items": 0,
         "decisions": 0,
         "uncertain_items": 0,
-        "follow_ups": 2,
-        "meeting_minutes_estimated": 9.2,
-        "rate_per_10min": 2.17
+        "follow_ups": 0,
+        "meeting_minutes_estimated": 10.4,
+        "rate_per_10min": 0.0
       },
       "interruption": {
         "total_interruptions": 0,
-        "total_utterances": 144,
+        "total_utterances": 19,
         "interruption_rate": 0.0,
         "repeat_interrupters": {}
       },
@@ -70,56 +70,22 @@
   },
   "participation": {
     "A": {
-      "speaking_time_seconds": 441.65,
+      "speaking_time_seconds": 500.73,
       "speaking_share_percent": 100.0,
-      "utterance_count": 144,
-      "average_words_per_utterance": 7.99,
-      "longest_speaking_streak_seconds": 20.72
+      "utterance_count": 19,
+      "average_words_per_utterance": 86.42,
+      "longest_speaking_streak_seconds": 106.42
     }
   },
   "interruptions": [],
   "sentiment": {},
   "intelligence": {
-    "action_items": [
-      {
-        "action": "check the gate management module",
-        "owner": "Speaker A",
-        "deadline": "before the society handover",
-        "confidence": 0.8,
-        "source_quote": "You can check it once"
-      },
-      {
-        "action": "arrange a 10-15 minute online demo on Google Meet",
-        "owner": "Speaker A",
-        "deadline": "as soon as possible",
-        "confidence": 0.9,
-        "source_quote": "So, we will confirm the availability for 10-15 minutes and arrange it with the team"
-      }
-    ],
+    "action_items": [],
     "uncertain_action_items": [],
     "decisions": [],
     "uncertain_decisions": [],
-    "follow_ups": [
-      {
-        "topic": "society registration and handover",
-        "reason": "registration process not yet completed",
-        "owner": null
-      },
-      {
-        "topic": "implementation of gate management module",
-        "reason": "pending demo and discussion",
-        "owner": null
-      }
-    ],
-    "open_questions": [
-      {
-        "question": "What is the exact number of flats in the society?",
-        "asked_by": "Speaker A"
-      },
-      {
-        "question": "Will the society handover occur in December?",
-        "asked_by": "Speaker A"
-      }
-    ]
+    "follow_ups": [],
+    "open_questions": [],
+    "high_level_summary": "Intelligence extraction unavailable (Groq API blocked or unreachable)."
   }
 }

@@ -1,0 +1,56 @@
+{
+  "cached_at": "2026-05-26T05:33:36.206261",
+  "namespace": "extraction",
+  "key": "2569cd4c6b6b68935993ad07a8f52d24",
+  "data": {
+    "action_items": [
+      {
+        "action": "check the gate management module",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.8,
+        "source_quote": "You can check the gate management module"
+      },
+      {
+        "action": "arrange a demonstration of the gate management module",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.9,
+        "source_quote": "We will confirm the availability for 10-15 minutes so that we can arrange it with the team"
+      },
+      {
+        "action": "share the recorded demonstration with other society members",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.8,
+        "source_quote": "So you can share that recording with your other society members"
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society registration",
+        "reason": "the registration process is not yet completed",
+        "owner": null
+      },
+      {
+        "topic": "implementation of No Brokerhood services",
+        "reason": "the society is not yet formed and the registration process is not yet completed",
+        "owner": null
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What is the exact number of flats in the society?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "When will the society registration be completed?",
+        "asked_by": "Speaker A"
+      }
+    ],
+    "high_level_summary": "The meeting discussed the implementation of No Brokerhood services for a society. The society is not yet formed, but the registration process is expected to be completed in the next two to three months. The services provided by No Brokerhood include gate management and accounting management. The gate management module can be implemented without society registration, and a demonstration of the module was offered. The meeting also discussed the number of flats in the society and the potential implementation of the gate management module for 84 flats in one of the buildings."
+  }
+}

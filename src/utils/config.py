@@ -17,6 +17,7 @@ _load_env()
 ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 # AssemblyAI
 ASSEMBLYAI_BASE_URL = "https://api.assemblyai.com"

@@ -2,8 +2,14 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
+
 def transcribe_audio(audio_path: str, provider: str = "assemblyai") -> dict:
-    """Transcribe audio using specified provider."""
+    """Transcribe audio using specified provider.
+
+    Args:
+        audio_path: Path to the audio file.
+        provider: One of 'assemblyai', 'groq'.
+    """
 
     if provider == "assemblyai":
         from transcription.providers.assemblyai_provider import AssemblyAIProvider
@@ -15,10 +21,5 @@ def transcribe_audio(audio_path: str, provider: str = "assemblyai") -> dict:
         transcriber = GroqWhisperProvider()
         return transcriber.transcribe(audio_path)
 
-    elif provider == "sarvam":
-        from transcription.providers.sarvam_provider import SarvamProvider
-        transcriber = SarvamProvider()
-        return transcriber.transcribe(audio_path)
-
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'assemblyai', 'groq', or 'sarvam'")
+        raise ValueError(f"Unknown provider: {provider}. Use 'assemblyai' or 'groq'")

@@ -1,0 +1,14 @@
+{
+  "cached_at": "2026-05-16T23:01:38.776525",
+  "namespace": "extraction",
+  "key": "55738794b9e8c71f16b0f5788caf9fcb",
+  "data": {
+    "action_items": [],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [],
+    "open_questions": [],
+    "high_level_summary": "Intelligence extraction unavailable (Groq API blocked or unreachable)."
+  }
+}

@@ -41,6 +41,18 @@ def chunk_utterances(transcript: dict, max_words: int = 30) -> dict:
         # long utterance — split into sentences
         sentences = split_into_sentences(text)
 
+        # Merge chunks shorter than 4 words with the next chunk
+        merged_sentences = []
+        i = 0
+        while i < len(sentences):
+            s = sentences[i]
+            while len(s.split()) < 4 and i + 1 < len(sentences):
+                i += 1
+                s += " " + sentences[i]
+            merged_sentences.append(s)
+            i += 1
+        sentences = merged_sentences
+
         if len(sentences) <= 1:
             # can't split further, keep as is
             chunked.append(utt)

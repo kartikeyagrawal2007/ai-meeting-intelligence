@@ -194,7 +194,7 @@ if __name__ == "__main__":
         print(
             "Usage: python main.py <audio_file> "
             "[meeting_title] [--skip-preprocess] [--skip-correction] "
-            "[--skip-sentiment] [--groq] [--sarvam]"
+            "[--skip-sentiment] [--groq]"
         )
         sys.exit(1)
 
@@ -204,9 +204,7 @@ if __name__ == "__main__":
     skip_correction = "--skip-correction" in sys.argv
     skip_sentiment = "--skip-sentiment" in sys.argv
     
-    if "--sarvam" in sys.argv:
-        provider = "sarvam"
-    elif "--groq" in sys.argv:
+    if "--groq" in sys.argv:
         provider = "groq"
     else:
         provider = "assemblyai"

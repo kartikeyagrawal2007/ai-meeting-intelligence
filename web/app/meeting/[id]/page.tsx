@@ -246,24 +246,32 @@ function SimpleMarkdown({ content }: { content: string }) {
 // ── Transcript view ────────────────────────────────────────────────────────────
 
 function TranscriptView({ utterances }: { utterances: AnalysisResults["utterances"] }) {
+  const getBadgeColor = (speaker: string) => {
+    if (speaker.includes('A')) return "bg-blue-500 text-blue-50 border-blue-600";
+    if (speaker.includes('B')) return "bg-green-500 text-green-50 border-green-600";
+    if (speaker.includes('C')) return "bg-purple-500 text-purple-50 border-purple-600";
+    if (speaker.includes('D')) return "bg-orange-500 text-orange-50 border-orange-600";
+    return "bg-slate-500 text-slate-50 border-slate-600";
+  };
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {utterances.map((utt, i) => {
-        const color = getSpeakerColor(utt.speaker);
+        const badgeClass = getBadgeColor(utt.speaker);
         return (
-          <div key={i} className={cn("flex gap-3 p-3 rounded-lg border", color.bg, color.border + "/20")}>
-            <div className={cn("w-2 h-2 rounded-full mt-2 flex-shrink-0", `bg-[${color.dot}]`)}
-              style={{ backgroundColor: color.dot }} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className={cn("text-xs font-semibold", color.text)}>
-                  {utt.speaker}
-                </span>
-                <span className="text-[10px] text-slate-600">
-                  {formatTime(utt.start / 1000)}
-                </span>
+          <div key={i} className="flex gap-4 p-4 rounded-xl bg-[#0d1424] border border-[#1e293b] relative">
+            <div className="flex-shrink-0">
+              <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border", badgeClass)}>
+                {utt.speaker.substring(0, 2).toUpperCase()}
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed">{utt.text}</p>
+            </div>
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <p className="text-sm text-slate-200 leading-relaxed">{utt.text}</p>
+            </div>
+            <div className="absolute top-4 right-4">
+              <span className="text-[10px] font-mono text-slate-500">
+                {formatTime(utt.start / 1000)}
+              </span>
             </div>
           </div>
         );

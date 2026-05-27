@@ -2,11 +2,11 @@ def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
     lines = [f"# Meeting Recap: {meeting_title}\n"]
 
     # -----------------------------
-    # Executive Summary
+    # Meeting Summary
     # -----------------------------
-    summary = intelligence.get("high_level_summary", "")
+    summary = intelligence.get("summary", "")
     if summary:
-        lines.append("## Executive Summary")
+        lines.append("## Meeting Summary")
         lines.append(f"{summary}\n")
 
     # -----------------------------

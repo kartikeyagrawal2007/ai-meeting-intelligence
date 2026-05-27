@@ -47,6 +47,7 @@ class Job:
     audio_filename: str
     audio_path: str
     provider: str = "assemblyai"
+    language_mode: str = "codemix"
 
     # Pipeline flags
     skip_preprocess: bool = False
@@ -82,6 +83,7 @@ def create_job(
     audio_filename: str,
     audio_path: str,
     provider: str = "assemblyai",
+    language_mode: str = "codemix",
     skip_preprocess: bool = False,
     skip_correction: bool = False,
     skip_sentiment: bool = False,
@@ -93,6 +95,7 @@ def create_job(
         audio_filename=audio_filename,
         audio_path=audio_path,
         provider=provider,
+        language_mode=language_mode,
         skip_preprocess=skip_preprocess,
         skip_correction=skip_correction,
         skip_sentiment=skip_sentiment,

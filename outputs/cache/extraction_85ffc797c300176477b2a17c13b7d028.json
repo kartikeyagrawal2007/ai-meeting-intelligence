@@ -1,0 +1,63 @@
+{
+  "cached_at": "2026-05-26T09:53:09.048998",
+  "namespace": "extraction",
+  "key": "85ffc797c300176477b2a17c13b7d028",
+  "data": {
+    "action_items": [
+      {
+        "action": "check the details of Ashree Society",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.8,
+        "source_quote": "Okay, so your society is located in Panvel. I will check the details."
+      },
+      {
+        "action": "provide a demo of the product",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.8,
+        "source_quote": "We can also provide a demo of our product, which will explain how it can be implemented in your building."
+      },
+      {
+        "action": "provide a quotation based on the society's requirements",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.8,
+        "source_quote": "If you are interested in implementing our services, we can provide a quotation based on your requirements, which is negotiable."
+      },
+      {
+        "action": "confirm contact number and email ID",
+        "owner": "Speaker A",
+        "deadline": null,
+        "confidence": 0.8,
+        "source_quote": "Please confirm your contact number and email ID so we can proceed further."
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "registration process of Ashree Society",
+        "reason": "the society is not yet registered",
+        "owner": null
+      },
+      {
+        "topic": "handover of the society from the builder",
+        "reason": "the handover is expected to happen by December",
+        "owner": null
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What is the expected timeline for the society's registration process?",
+        "asked_by": "Speaker A"
+      },
+      {
+        "question": "What are the requirements for the society's maintenance collection and management services?",
+        "asked_by": "Speaker A"
+      }
+    ],
+    "high_level_summary": "The meeting was an introductory call between Ashree Society and a service provider. The society is in the process of formation and is looking for maintenance collection and management services. The service provider explained their services, including gate management and accounting management, and offered a demo of their product. The society is interested in learning more about the services, but the registration process cannot be completed until the society is formally registered, which is expected to happen by December. The service provider offered to provide a quotation based on the society's requirements, which is negotiable."
+  }
+}

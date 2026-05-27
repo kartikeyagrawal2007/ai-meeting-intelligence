@@ -42,8 +42,7 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [title, setTitle] = useState("");
-  const [provider, setProvider] = useState<"assemblyai" | "groq" | "sarvam">("assemblyai");
-  const [languageMode, setLanguageMode] = useState<"translate" | "codemix" | "transcribe">("codemix");
+  const [provider, setProvider] = useState<"assemblyai" | "groq">("assemblyai");
   const [skipPreprocess, setSkipPreprocess] = useState(false);
   const [skipCorrection, setSkipCorrection] = useState(false);
   const [skipSentiment, setSkipSentiment] = useState(false);
@@ -73,7 +72,6 @@ export default function UploadPage() {
       const { job_id } = await uploadAudio(file, {
         meetingTitle: title || file.name.replace(/\.[^.]+$/, ""),
         provider,
-        languageMode,
         skipPreprocess,
         skipCorrection,
         skipSentiment,
@@ -92,7 +90,6 @@ export default function UploadPage() {
   const providerInfo = {
     assemblyai: { label: "🎙 AssemblyAI", desc: "Best accuracy with speaker diarization." },
     groq: { label: "⚡ Groq Whisper", desc: "Fastest option." },
-    sarvam: { label: "🇮🇳 Sarvam AI", desc: "Best for Hindi and Indian languages. Speaker separation not available." },
   };
 
   return (
@@ -188,8 +185,8 @@ export default function UploadPage() {
           <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
             Transcription Provider
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {(["assemblyai", "groq", "sarvam"] as const).map((p) => (
+          <div className="grid grid-cols-2 gap-2">
+            {(["assemblyai", "groq"] as const).map((p) => (
               <button
                 key={p}
                 type="button"
@@ -210,41 +207,6 @@ export default function UploadPage() {
           </p>
         </div>
 
-        {/* Language Output toggle */}
-        {provider === "sarvam" && (
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
-              Language Output
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {([
-                { value: "translate",  label: "🌐 English" },
-                { value: "codemix",    label: "🇮🇳 Hinglish" },
-                { value: "transcribe", label: "📜 Hindi" },
-              ] as const).map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  id={`lang-${value}`}
-                  onClick={() => setLanguageMode(value)}
-                  className={cn(
-                    "py-3 px-2 rounded-xl text-sm font-medium border transition-all duration-150",
-                    languageMode === value
-                      ? "bg-indigo-500/15 border-indigo-500/40 text-indigo-300"
-                      : "bg-[#111827] border-[#1e293b] text-slate-400 hover:text-slate-300 hover:border-slate-600"
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-slate-600 mt-2">
-              {languageMode === "translate"  && "Transcribe and translate to English"}
-              {languageMode === "codemix"    && "Hinglish — English in Latin, Hindi in Devanagari"}
-              {languageMode === "transcribe" && "Full Hindi in Devanagari script"}
-            </p>
-          </div>
-        )}
 
         {/* Skip flags */}
         <div>

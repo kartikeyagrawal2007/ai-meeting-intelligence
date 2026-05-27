@@ -274,7 +274,7 @@ Transcript:
 
 Return this exact JSON structure (empty arrays are fine):
 {{
-  "high_level_summary": "A cohesive, 2-3 paragraph narrative summary of the meeting, describing the context, main topics discussed, overarching sentiments, and the final outcomes. Write this like a professional meeting recap for executives.",
+  "summary": "A 2-3 sentence summary describing what the meeting was about.",
   "action_items": [
     {{
       "action": "specific task description",

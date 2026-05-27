@@ -62,14 +62,27 @@ class GroqWhisperProvider:
 
     def _transcribe_chunk(self, audio_path: str, offset_seconds: float = 0) -> list[dict]:
         """Transcribe a single audio chunk."""
-        with open(audio_path, "rb") as f:
-            response = self.client.audio.transcriptions.create(
-                model=self.model,
-                file=f,
-                response_format="verbose_json",
-                language="en",
-                timestamp_granularities=["segment"]
-            )
+        import time
+        for attempt in range(4):
+            try:
+                with open(audio_path, "rb") as f:
+                    response = self.client.audio.transcriptions.create(
+                        model=self.model,
+                        file=f,
+                        response_format="verbose_json",
+                        language="en",
+                        timestamp_granularities=["segment"]
+                    )
+                break
+            except Exception as e:
+                error_str = str(e)
+                if ("403" in error_str or "429" in error_str) and attempt < 3:
+                    log.warning(f"Groq API error {error_str}. Waiting 5 seconds and retrying ({attempt+1}/3)...")
+                    time.sleep(5)
+                elif "403" in error_str:
+                    raise Exception(f"Groq API Error 403: Please check your VPN or network settings. {error_str}")
+                else:
+                    raise
 
         segments = []
         for seg in response.segments:

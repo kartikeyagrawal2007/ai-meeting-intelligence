@@ -1,4 +1,5 @@
 import json
+# pyrefly: ignore [missing-import]
 from groq import Groq
 from intelligence.prompts import EXTRACTION_PROMPT
 from transcription.formatter import utterances_to_text
@@ -13,13 +14,22 @@ CONFIDENCE_THRESHOLD = 0.75
 def extract_intelligence(transcript: dict) -> dict:
     log.info("Extracting action items, decisions, and follow-ups...")
     
-    # for long transcripts, only use first 100 utterances for extraction
-    # to stay within token limits
+    # for long transcripts, do smart sampling instead of just first 100
     utterances = transcript.get("utterances", [])
     if len(utterances) > 100:
-        log.info(f"  Long transcript ({len(utterances)} utterances), sampling first 100 for extraction")
+        log.info(f"  Long transcript ({len(utterances)} utterances), smart sampling (30 first, 40 middle, 30 last)")
         sampled = transcript.copy()
-        sampled["utterances"] = utterances[:100]
+        first_30 = utterances[:30]
+        last_30 = utterances[-30:]
+        middle_utterances = utterances[30:-30]
+        
+        if len(middle_utterances) <= 40:
+            middle_40 = middle_utterances
+        else:
+            step = len(middle_utterances) / 40.0
+            middle_40 = [middle_utterances[int(i * step)] for i in range(40)]
+            
+        sampled["utterances"] = first_30 + middle_40 + last_30
         transcript_text = utterances_to_text(sampled)
     else:
         transcript_text = utterances_to_text(transcript)
@@ -52,7 +62,7 @@ def extract_intelligence(transcript: dict) -> dict:
             "uncertain_decisions": [],
             "follow_ups": [],
             "open_questions": [],
-            "high_level_summary": "Intelligence extraction unavailable (Groq API blocked or unreachable).",
+            "summary": "Intelligence extraction unavailable (Groq API blocked or unreachable).",
         }
 
     # split into confirmed vs uncertain based on confidence
@@ -91,7 +101,7 @@ def extract_intelligence(transcript: dict) -> dict:
         "uncertain_decisions": uncertain_decisions,
         "follow_ups": data.get("follow_ups", []),
         "open_questions": data.get("open_questions", []),
-        "high_level_summary": data.get("high_level_summary", ""),
+        "summary": data.get("summary", ""),
     }
 
     log.info(
