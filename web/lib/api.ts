@@ -25,7 +25,7 @@ export async function uploadAudio(
   options: {
     meetingTitle: string;
     provider: string;
-    languageMode: string;
+    languageMode?: string;
     skipPreprocess: boolean;
     skipCorrection: boolean;
     skipSentiment: boolean;
@@ -36,7 +36,7 @@ export async function uploadAudio(
   form.append("audio", file);
   form.append("meeting_title", options.meetingTitle);
   form.append("provider", options.provider);
-  form.append("language_mode", options.languageMode);
+  form.append("language_mode", options.languageMode ?? "auto");
   form.append("skip_preprocess", String(options.skipPreprocess));
   form.append("skip_correction", String(options.skipCorrection));
   form.append("skip_sentiment", String(options.skipSentiment));

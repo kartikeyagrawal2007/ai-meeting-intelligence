@@ -6,7 +6,7 @@ from utils.logger import get_logger
 log = get_logger(__name__)
 
 class AssemblyAIProvider:
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or ASSEMBLYAI_API_KEY
         self.base_url = ASSEMBLYAI_BASE_URL
         self.headers = {"authorization": self.api_key}
