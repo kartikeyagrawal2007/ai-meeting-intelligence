@@ -53,8 +53,17 @@ def chunk_utterances(transcript: dict, max_words: int = 30) -> dict:
             i += 1
         sentences = merged_sentences
 
-        if len(sentences) <= 1:
-            # can't split further, keep as is
+        final_sentences = []
+        for s in sentences:
+            if len(s.split()) > max_words:
+                words = s.split()
+                for j in range(0, len(words), max_words):
+                    final_sentences.append(" ".join(words[j:j+max_words]))
+            else:
+                final_sentences.append(s)
+        sentences = final_sentences
+
+        if not sentences:
             chunked.append(utt)
             continue
 
@@ -90,6 +99,9 @@ def chunk_utterances(transcript: dict, max_words: int = 30) -> dict:
         f"Chunking complete: {len(utterances)} utterances "
         f"→ {len(chunked)} chunks"
     )
+
+    # sort chunks by timestamp to interleave them properly
+    chunked = sorted(chunked, key=lambda c: c.get("start", 0))
 
     # rebuild transcript text
     result = transcript.copy()

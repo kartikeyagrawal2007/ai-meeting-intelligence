@@ -1,5 +1,6 @@
 import sys
 import os
+import concurrent.futures
 
 from utils.chunker import chunk_utterances
 from intelligence.sentiment import analyze_sentiment
@@ -101,13 +102,22 @@ def analyze_meeting(
         print("  No interruptions detected")
 
     # -----------------------------
-    # Sentiment analysis
+    # Intelligence Extraction & Sentiment Analysis
+    # (Running in parallel)
     # -----------------------------
-    if skip_sentiment:
-        log.info("Skipping sentiment analysis")
-        sentiment = {}
-    else:
-        sentiment = analyze_sentiment(transcript)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_intelligence = executor.submit(extract_intelligence, transcript)
+        
+        if skip_sentiment:
+            log.info("Skipping sentiment analysis")
+            future_sentiment = None
+        else:
+            future_sentiment = executor.submit(analyze_sentiment, transcript)
+
+        intelligence = future_intelligence.result()
+        sentiment = future_sentiment.result() if future_sentiment else {}
+
+    if not skip_sentiment:
         print("\n=== SENTIMENT ANALYSIS ===")
         for speaker, summary in sentiment.get("speaker_summary", {}).items():
             print(f"\nSpeaker {speaker}")
@@ -118,11 +128,6 @@ def analyze_meeting(
             print(f"  Confused          : {summary['flags']['confused_count']} times")
             print(f"  Agreeable         : {summary['flags']['agreeable_count']} times")
             print(f"  Decisive          : {summary['flags']['decisive_count']} times")
-
-    # -----------------------------
-    # Intelligence extraction
-    # -----------------------------
-    intelligence = extract_intelligence(transcript)
 
     # -----------------------------
     # Meeting quality scoring
@@ -194,7 +199,8 @@ if __name__ == "__main__":
         print(
             "Usage: python main.py <audio_file> "
             "[meeting_title] [--skip-preprocess] [--skip-correction] "
-            "[--skip-sentiment] [--groq] [--pyannote]"
+            "[--skip-sentiment] [--groq] [--pyannote]\n"
+            "Providers: assemblyai (default), groq, pyannote"
         )
         sys.exit(1)
 
