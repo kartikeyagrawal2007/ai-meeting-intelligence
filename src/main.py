@@ -29,7 +29,8 @@ def analyze_meeting(
     skip_preprocess: bool = False,
     skip_correction: bool = False,
     skip_sentiment: bool = False,
-    provider: str = "assemblyai"
+    provider: str = "assemblyai",
+    speakers_expected: int | None = None,
 ) -> dict:
 
     # -----------------------------
@@ -44,7 +45,7 @@ def analyze_meeting(
     # -----------------------------
     # Transcription
     # -----------------------------
-    transcript = transcribe_audio(clean_path, provider=provider)
+    transcript = transcribe_audio(clean_path, provider=provider, speakers_expected=speakers_expected)
 
     # -----------------------------
     # Utterance chunking
@@ -199,7 +200,7 @@ if __name__ == "__main__":
         print(
             "Usage: python main.py <audio_file> "
             "[meeting_title] [--skip-preprocess] [--skip-correction] "
-            "[--skip-sentiment] [--groq] [--pyannote]\n"
+            "[--skip-sentiment] [--groq] [--pyannote] [--speakers N]\n"
             "Providers: assemblyai (default), groq, pyannote"
         )
         sys.exit(1)
@@ -217,6 +218,16 @@ if __name__ == "__main__":
     else:
         provider = "assemblyai"
 
+    # Parse --speakers N
+    speakers_expected: int | None = None
+    for i, arg in enumerate(sys.argv):
+        if arg == "--speakers" and i + 1 < len(sys.argv):
+            try:
+                speakers_expected = int(sys.argv[i + 1])
+            except ValueError:
+                print(f"Invalid --speakers value: {sys.argv[i+1]}")
+                sys.exit(1)
+
     if not os.path.exists(audio_path):
         print(f"File not found: {audio_path}")
         sys.exit(1)
@@ -227,5 +238,6 @@ if __name__ == "__main__":
         skip_preprocess,
         skip_correction,
         skip_sentiment,
-        provider
+        provider,
+        speakers_expected,
     )

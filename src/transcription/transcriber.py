@@ -67,11 +67,11 @@ def _merge_channel_transcripts(transcript_a: dict, transcript_b: dict) -> dict:
     }
 
 
-def _transcribe_single(audio_path: str, provider: str) -> dict:
+def _transcribe_single(audio_path: str, provider: str, speakers_expected: int | None = None) -> dict:
     """Transcribe a single (mono) audio file with the chosen provider."""
     if provider == "assemblyai":
         from transcription.providers.assemblyai_provider import AssemblyAIProvider
-        return AssemblyAIProvider().transcribe(audio_path)
+        return AssemblyAIProvider().transcribe(audio_path, speakers_expected=speakers_expected)
 
     elif provider == "groq":
         from transcription.providers.groq_whisper_provider import GroqWhisperProvider
@@ -91,13 +91,15 @@ def _transcribe_single(audio_path: str, provider: str) -> dict:
 def transcribe_audio(
     audio_path: str,
     provider: str = "assemblyai",
+    speakers_expected: int | None = None,
 ) -> dict:
     """
     Transcribe audio using specified provider with channel-aware diarization.
 
     Args:
-        audio_path:  Path to the audio file (may be stereo or mono).
-        provider:    One of 'assemblyai', 'groq', 'pyannote'.
+        audio_path:        Path to the audio file (may be stereo or mono).
+        provider:          One of 'assemblyai', 'groq', 'pyannote'.
+        speakers_expected: Hint the number of distinct speakers (improves diarization).
 
     Returns:
         Standard transcript dict:
@@ -110,7 +112,7 @@ def transcribe_audio(
     if not channel_info["is_stereo"]:
         # ── MONO path: normal single transcription ────────────────────────
         log.info("Mono audio — using standard transcription pipeline.")
-        return _transcribe_single(audio_path, provider)
+        return _transcribe_single(audio_path, provider, speakers_expected=speakers_expected)
 
     # ── STEREO path: per-channel transcription ────────────────────────────
     log.info("Stereo audio — transcribing each channel separately.")
