@@ -3,6 +3,7 @@ from __future__ import annotations
 from groq import Groq  # type: ignore[import-untyped]
 from utils.config import GROQ_API_KEY, GROQ_MODEL
 from utils.logger import get_logger
+from utils.token_tracker import record_usage
 import json
 
 
@@ -143,6 +144,11 @@ def analyze_sentiment(transcript: dict) -> dict:
             )
 
             raw = response.choices[0].message.content.strip()
+
+            # Track token usage so the UI badge stays accurate
+            if response.usage:
+                record_usage(response.usage.total_tokens, source="sentiment")
+
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
                 if raw.startswith("json"):

@@ -5,6 +5,7 @@ from intelligence.prompts import EXTRACTION_PROMPT
 from transcription.formatter import utterances_to_text
 from utils.config import GROQ_API_KEY, GROQ_MODEL, GROQ_TEMPERATURE
 from utils.logger import get_logger
+from utils.token_tracker import record_usage
 
 log = get_logger(__name__)
 client = Groq(api_key=GROQ_API_KEY)
@@ -43,6 +44,10 @@ def extract_intelligence(transcript: dict) -> dict:
             messages=[{"role": "user", "content": prompt}],
             temperature=GROQ_TEMPERATURE,
         )
+
+        # Track token usage so the UI badge stays accurate
+        if response.usage:
+            record_usage(response.usage.total_tokens, source="extraction")
 
         raw = response.choices[0].message.content.strip()
         if raw.startswith("```"):
