@@ -26,6 +26,7 @@ export async function uploadAudio(
     meetingTitle: string;
     provider: string;
     languageMode?: string;
+    speakersExpected?: number;
     skipPreprocess: boolean;
     skipCorrection: boolean;
     skipSentiment: boolean;
@@ -37,6 +38,7 @@ export async function uploadAudio(
   form.append("meeting_title", options.meetingTitle);
   form.append("provider", options.provider);
   form.append("language_mode", options.languageMode ?? "auto");
+  form.append("speakers_expected", String(options.speakersExpected ?? 0));
   form.append("skip_preprocess", String(options.skipPreprocess));
   form.append("skip_correction", String(options.skipCorrection));
   form.append("skip_sentiment", String(options.skipSentiment));
