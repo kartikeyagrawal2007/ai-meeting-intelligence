@@ -180,22 +180,36 @@ def _run_diarization(pipeline: Any, wav_path: str) -> list[dict]:
 # ── Speaker alignment ─────────────────────────────────────────────────────────
 
 
-def _speaker_at(diarization_segments: list[dict], time_ms: float) -> str:
-    """Return the speaker label at a given timestamp (ms).
+def _build_speaker_index(segments: list[dict]) -> tuple[list[int], list[dict]]:
+    """Pre-sort segments and build a starts index for binary search."""
+    sorted_segs = sorted(segments, key=lambda s: s["start_ms"])
+    starts = [s["start_ms"] for s in sorted_segs]
+    return starts, sorted_segs
 
-    Falls back to the nearest segment if no exact match.
+
+def _speaker_at_fast(
+    starts: list[int], segments: list[dict], time_ms: float
+) -> str:
+    """O(log n) speaker lookup via binary search.
+
+    Falls back to the nearest segment boundary if the timestamp
+    falls in a gap between segments.
     """
-    for seg in diarization_segments:
-        if seg["start_ms"] <= time_ms <= seg["end_ms"]:
-            return seg["speaker"]
+    import bisect
 
-    # fallback: find nearest segment
-    best = min(
-        diarization_segments,
-        key=lambda s: min(abs(s["start_ms"] - time_ms), abs(s["end_ms"] - time_ms)),
-        default=None,
-    )
-    return best["speaker"] if best else "A"
+    idx = bisect.bisect_right(starts, time_ms) - 1
+    if idx >= 0 and segments[idx]["end_ms"] >= time_ms:
+        return segments[idx]["speaker"]
+
+    # Timestamp is in a gap — return nearest segment by boundary distance
+    best_idx = 0
+    best_dist = float("inf")
+    for i, seg in enumerate(segments):
+        dist = min(abs(seg["start_ms"] - time_ms), abs(seg["end_ms"] - time_ms))
+        if dist < best_dist:
+            best_dist = dist
+            best_idx = i
+    return segments[best_idx]["speaker"] if segments else "A"
 
 
 # ── Groq Whisper transcription ────────────────────────────────────────────────
@@ -217,7 +231,7 @@ def _transcribe_chunk_groq(
                     model=model,
                     file=f,
                     response_format="verbose_json",
-                    timestamp_granularities=["segment"],
+                    timestamp_granularities=["word", "segment"],
                 )
                 if language:
                     create_kwargs["language"] = language
@@ -243,22 +257,43 @@ def _transcribe_chunk_groq(
         raise RuntimeError(f"All Groq retry attempts failed for: {audio_path}")
 
     words: list[dict] = []
-    for seg in response.segments:
-        if isinstance(seg, dict):
-            start = seg.get("start", 0)
-            end = seg.get("end", 0)
-            text = seg.get("text", "").strip()
-        else:
-            start = seg.start
-            end = seg.end
-            text = seg.text.strip()
 
-        if text:
-            words.append({
-                "text": text,
-                "start_ms": int(start * 1000) + offset_ms,
-                "end_ms": int(end * 1000) + offset_ms,
-            })
+    # Prefer word-level timestamps for finer alignment with pyannote segments;
+    # fall back to segment-level if word granularity is not available.
+    word_list = getattr(response, "words", None)
+    if word_list:
+        for w in word_list:
+            if isinstance(w, dict):
+                start = w.get("start", 0)
+                end = w.get("end", 0)
+                text = w.get("word", w.get("text", "")).strip()
+            else:
+                start = getattr(w, "start", 0)
+                end = getattr(w, "end", 0)
+                text = (getattr(w, "word", None) or getattr(w, "text", "")).strip()
+            if text:
+                words.append({
+                    "text": text,
+                    "start_ms": int(start * 1000) + offset_ms,
+                    "end_ms": int(end * 1000) + offset_ms,
+                })
+    else:
+        # segment-level fallback
+        for seg in response.segments:
+            if isinstance(seg, dict):
+                start = seg.get("start", 0)
+                end = seg.get("end", 0)
+                text = seg.get("text", "").strip()
+            else:
+                start = seg.start
+                end = seg.end
+                text = seg.text.strip()
+            if text:
+                words.append({
+                    "text": text,
+                    "start_ms": int(start * 1000) + offset_ms,
+                    "end_ms": int(end * 1000) + offset_ms,
+                })
 
     return words
 
@@ -337,20 +372,24 @@ def _transcribe_chunked_groq(
 def _merge_into_utterances(
     whisper_words: list[dict],
     diarization_segments: list[dict],
-    pause_threshold_ms: int = 800,
+    pause_threshold_ms: int = 400,
 ) -> list[dict]:
-    """Assign each Whisper segment a speaker label from pyannote,
-    then merge consecutive same-speaker segments into utterances.
+    """Assign each Whisper word a speaker label from pyannote,
+    then merge consecutive same-speaker words into utterances.
 
     Starts a new utterance on speaker change or a pause > pause_threshold_ms.
+    Uses binary-search speaker lookup for O(n log n) overall complexity.
     """
     if not whisper_words:
         return []
 
+    # Build index once for O(log n) per-word lookup
+    starts, sorted_segs = _build_speaker_index(diarization_segments)
+
     labeled: list[dict] = []
     for w in whisper_words:
         mid_ms = (w["start_ms"] + w["end_ms"]) / 2
-        speaker = _speaker_at(diarization_segments, mid_ms)
+        speaker = _speaker_at_fast(starts, sorted_segs, mid_ms)
         labeled.append({**w, "speaker": speaker})
 
     utterances: list[dict] = []
