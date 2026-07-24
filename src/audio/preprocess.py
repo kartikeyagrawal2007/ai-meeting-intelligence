@@ -22,8 +22,8 @@ def enhance_audio(input_wav: str, output_wav: str) -> bool:
         result = subprocess.run([
             "ffmpeg", "-y", "-i", input_wav,
             "-af", (
-                "highpass=f=200,"           # remove low freq rumble
-                "lowpass=f=3400,"           # keep speech frequencies only
+                "highpass=f=100,"           # remove low freq rumble
+                "lowpass=f=7500,"           # preserve full human vocal clarity (wideband)
                 "afftdn=nf=-25,"            # noise reduction
                 "equalizer=f=1000:width_type=o:width=2:g=3,"  # boost mid speech
                 "equalizer=f=3000:width_type=o:width=2:g=2,"  # boost clarity
@@ -134,8 +134,8 @@ def preprocess_audio(input_path: str) -> str:
         result = subprocess.run([
             "ffmpeg", "-y", "-i", input_path,
             "-af", (
-                "highpass=f=200,"
-                "lowpass=f=3400,"
+                "highpass=f=100,"
+                "lowpass=f=7500,"
                 "afftdn=nf=-25,"
                 "equalizer=f=1000:width_type=o:width=2:g=3,"
                 "equalizer=f=3000:width_type=o:width=2:g=2,"
