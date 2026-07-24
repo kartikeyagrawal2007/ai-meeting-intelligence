@@ -18,21 +18,25 @@ SENTIMENT_WINDOWS = 8
 BATCH_SENTIMENT_PROMPT = """\
 You are a sentiment analysis engine. Analyze the sentiment of each utterance below.
 
-Return ONLY a valid JSON array — one object per utterance in the same order.
+Return a JSON object containing a "results" array — one object per utterance in the same order.
 No explanation, no markdown.
 
-Each object must have:
+Return this exact JSON structure:
 {{
-  "sentiment": "positive" | "negative" | "neutral",
-  "score": float between -1.0 and 1.0,
-  "emotion": "neutral" | "happy" | "frustrated" | "confused" | "confident" | "anxious" | "angry",
-  "energy": "high" | "medium" | "low",
-  "flags": {{
-    "is_frustrated": true | false,
-    "is_confused": true | false,
-    "is_agreeable": true | false,
-    "is_decisive": true | false
-  }}
+  "results": [
+    {{
+      "sentiment": "positive" | "negative" | "neutral",
+      "score": 0.0,
+      "emotion": "neutral" | "happy" | "frustrated" | "confused" | "confident" | "anxious" | "angry",
+      "energy": "high" | "medium" | "low",
+      "flags": {{
+        "is_frustrated": false,
+        "is_confused": false,
+        "is_agreeable": false,
+        "is_decisive": false
+      }}
+    }}
+  ]
 }}
 
 Utterances:
@@ -141,6 +145,7 @@ def analyze_sentiment(transcript: dict) -> dict:
                     )
                 }],
                 temperature=0.1,
+                response_format={"type": "json_object"},
             )
 
             raw = response.choices[0].message.content.strip()
@@ -155,7 +160,8 @@ def analyze_sentiment(transcript: dict) -> dict:
                     raw = raw[4:]
                 raw = raw.rsplit("```", 1)[0]
 
-            batch_results = json.loads(raw.strip())
+            parsed = json.loads(raw.strip())
+            batch_results = parsed.get("results", parsed if isinstance(parsed, list) else [])
             all_results.extend(batch_results)
             log.info(f"  Batch {batch_start//batch_size + 1}: {len(batch_results)} utterances analyzed")
 
