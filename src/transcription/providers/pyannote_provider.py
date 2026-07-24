@@ -240,9 +240,9 @@ def _transcribe_chunk_groq(
             break
         except Exception as e:
             err = str(e)
-            if ("403" in err or "429" in err) and attempt < GROQ_RETRY_ATTEMPTS - 1:
+            if attempt < GROQ_RETRY_ATTEMPTS - 1:
                 log.warning(
-                    f"Groq API error ({err}), "
+                    f"Groq API / network error ({err}), "
                     f"waiting {GROQ_RETRY_DELAY_S}s then retrying "
                     f"({attempt + 1}/{GROQ_RETRY_ATTEMPTS - 1})..."
                 )

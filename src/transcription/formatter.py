@@ -4,6 +4,8 @@ def format_transcript(transcript: dict) -> str:
         start_sec = utt["start"] // 1000
         timestamp = f"{start_sec // 60:02d}:{start_sec % 60:02d}"
         lines.append(f"[{timestamp}] Speaker {utt['speaker']}: {utt['text']}")
+        if utt.get("hinglish"):
+            lines.append(f"          (Hinglish): {utt['hinglish']}")
     return "\n".join(lines)
 
 def utterances_to_text(transcript: dict) -> str:

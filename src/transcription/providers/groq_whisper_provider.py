@@ -87,8 +87,8 @@ class GroqWhisperProvider:
                 break
             except Exception as e:
                 error_str = str(e)
-                if ("403" in error_str or "429" in error_str) and attempt < 3:
-                    log.warning(f"Groq API error {error_str}. Waiting 5 seconds and retrying ({attempt+1}/3)...")
+                if attempt < 3:
+                    log.warning(f"Groq API / network error ({error_str}). Retrying in 5s ({attempt+1}/4)...")
                     time.sleep(5)
                 elif "403" in error_str:
                     raise Exception(f"Groq API Error 403: Please check your VPN or network settings. {error_str}")

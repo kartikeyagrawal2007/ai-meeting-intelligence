@@ -267,6 +267,11 @@ function TranscriptView({ utterances }: { utterances: AnalysisResults["utterance
             </div>
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <p className="text-sm text-slate-200 leading-relaxed">{utt.text}</p>
+              {utt.hinglish && (
+                <p className="text-xs text-indigo-300/85 font-mono mt-1.5 leading-relaxed bg-indigo-950/40 px-2.5 py-1 rounded-md border border-indigo-500/20 w-fit">
+                  💬 {utt.hinglish}
+                </p>
+              )}
             </div>
             <div className="absolute top-4 right-4">
               <span className="text-[10px] font-mono text-slate-500">

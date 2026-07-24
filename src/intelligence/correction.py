@@ -3,6 +3,7 @@ from groq import Groq
 from utils.config import GROQ_API_KEY, GROQ_MODEL
 from utils.logger import get_logger
 from utils.token_tracker import record_usage
+from utils.transliterate import attach_hinglish_to_transcript
 
 log = get_logger(__name__)
 client = Groq(api_key=GROQ_API_KEY)
@@ -180,6 +181,8 @@ Now correct these:
     corrected_transcript["text"] = " ".join(
         utt["text"] for utt in all_corrected
     )
+
+    corrected_transcript = attach_hinglish_to_transcript(corrected_transcript)
 
     log.info(f"Correction complete. {len(all_corrected)} utterances processed.")
     return corrected_transcript

@@ -26,6 +26,7 @@ import shutil
 import concurrent.futures
 from utils.logger import get_logger
 from audio.channel_separator import separate_channels
+from utils.transliterate import attach_hinglish_to_transcript
 
 log = get_logger(__name__)
 
@@ -112,7 +113,8 @@ def transcribe_audio(
     if not channel_info["is_stereo"]:
         # ── MONO path: normal single transcription ────────────────────────
         log.info("Mono audio — using standard transcription pipeline.")
-        return _transcribe_single(audio_path, provider, speakers_expected=speakers_expected)
+        res = _transcribe_single(audio_path, provider, speakers_expected=speakers_expected)
+        return attach_hinglish_to_transcript(res)
 
     # ── STEREO path: per-channel transcription ────────────────────────────
     log.info("Stereo audio — transcribing each channel separately.")
@@ -144,7 +146,7 @@ def transcribe_audio(
             f"B: {len(transcript_b['utterances'])} utts → "
             f"{len(merged['utterances'])} merged."
         )
-        return merged
+        return attach_hinglish_to_transcript(merged)
 
     finally:
         # Clean up temp channel files

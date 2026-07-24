@@ -30,6 +30,7 @@ export interface Utterance {
   start: number;
   end: number;
   text: string;
+  hinglish?: string;
 }
 
 export interface ParticipationStats {
