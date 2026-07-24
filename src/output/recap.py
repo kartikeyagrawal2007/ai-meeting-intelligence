@@ -1,4 +1,4 @@
-def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
+def render_recap(intelligence: dict, meeting_title: str = "Meeting", topics: list[dict] | None = None) -> str:
     lines = [f"# Meeting Recap: {meeting_title}\n"]
 
     # -----------------------------
@@ -8,6 +8,21 @@ def render_recap(intelligence: dict, meeting_title: str = "Meeting") -> str:
     if summary:
         lines.append("## Meeting Summary")
         lines.append(f"{summary}\n")
+
+    # -----------------------------
+    # Topic Timeline
+    # -----------------------------
+    if topics:
+        lines.append("## Topic Breakdown")
+        for t in topics:
+            start_m, start_s = divmod(int(t.get("start_sec", 0)), 60)
+            end_m, end_s = divmod(int(t.get("end_sec", 0)), 60)
+            time_str = f"{start_m:02d}:{start_s:02d} - {end_m:02d}:{end_s:02d}"
+            speakers = ", ".join(t.get("speakers", []))
+            keywords = ", ".join(t.get("keywords", []))
+            lines.append(f"- **[{time_str}] {t.get('label')}**")
+            lines.append(f"  *Speakers:* {speakers} | *Keywords:* {keywords}")
+        lines.append("")
 
     # -----------------------------
     # Action Items

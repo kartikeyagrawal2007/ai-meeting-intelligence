@@ -129,7 +129,7 @@ def _run_analysis(job_id: str) -> None:
         quality = compute_quality_score(participation, interruptions, sentiment, intelligence)
 
         # ── Recap ──────────────────────────────────────────────────────────
-        recap_md = render_recap(intelligence, job.meeting_title)
+        recap_md = render_recap(intelligence, job.meeting_title, topics=topics)
 
         # ── Save results ───────────────────────────────────────────────────
         results = {

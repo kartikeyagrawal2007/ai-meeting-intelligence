@@ -14,6 +14,7 @@ from transcription.formatter import format_transcript
 
 from intelligence.extractor import extract_intelligence
 from intelligence.correction import correct_transcript
+from intelligence.topic_segmenter import segment_topics, segments_to_dict
 
 from output.recap import render_recap
 from output.export_json import export_to_json
@@ -144,9 +145,10 @@ def analyze_meeting(
     print(format_quality_report(quality))
 
     # -----------------------------
-    # Generate recap
+    # Topic segmentation & Recap
     # -----------------------------
-    recap = render_recap(intelligence, meeting_title)
+    topics_dict = segments_to_dict(segment_topics(transcript))
+    recap = render_recap(intelligence, meeting_title, topics=topics_dict)
 
     print("\n--- MEETING RECAP ---")
     print(recap)
