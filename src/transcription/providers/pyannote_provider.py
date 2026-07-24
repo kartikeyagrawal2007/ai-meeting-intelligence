@@ -232,6 +232,7 @@ def _transcribe_chunk_groq(
                     file=f,
                     response_format="verbose_json",
                     timestamp_granularities=["word", "segment"],
+                    prompt="Technical meeting discussion with action items, decisions, project updates, and team names.",
                 )
                 if language:
                     create_kwargs["language"] = language

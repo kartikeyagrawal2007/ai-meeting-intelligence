@@ -79,6 +79,7 @@ class GroqWhisperProvider:
                         file=f,
                         response_format="verbose_json",
                         timestamp_granularities=["segment"],
+                        prompt="Technical meeting discussion with action items, decisions, project updates, and team names.",
                     )
                     if language:
                         create_kwargs["language"] = language
