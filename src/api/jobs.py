@@ -47,13 +47,13 @@ class Job:
     audio_filename: str
     audio_path: str
     provider: str = "assemblyai"
-    language_mode: str = "codemix"
 
     # Pipeline flags
     skip_preprocess: bool = False
     skip_correction: bool = False
     skip_sentiment: bool = False
     skip_extraction: bool = False
+    speakers_expected: int | None = None  # hint for diarization
 
     # Status
     status: JobStatus = JobStatus.QUEUED
@@ -83,11 +83,11 @@ def create_job(
     audio_filename: str,
     audio_path: str,
     provider: str = "assemblyai",
-    language_mode: str = "codemix",
     skip_preprocess: bool = False,
     skip_correction: bool = False,
     skip_sentiment: bool = False,
     skip_extraction: bool = False,
+    speakers_expected: int | None = None,
 ) -> Job:
     job = Job(
         job_id=str(uuid.uuid4()),
@@ -95,11 +95,11 @@ def create_job(
         audio_filename=audio_filename,
         audio_path=audio_path,
         provider=provider,
-        language_mode=language_mode,
         skip_preprocess=skip_preprocess,
         skip_correction=skip_correction,
         skip_sentiment=skip_sentiment,
         skip_extraction=skip_extraction,
+        speakers_expected=speakers_expected,
     )
     with _lock:
         _jobs[job.job_id] = job

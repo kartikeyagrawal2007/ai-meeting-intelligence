@@ -1,22 +1,22 @@
 # Core dependencies
-numpy==2.4.4
-scipy==1.17.1
+numpy>=2.3
+scipy>=1.15
 
 # Audio processing
-noisereduce==3.0.3
-torch==2.11.0
-torchaudio==2.11.0
-pyannote.audio>=3.3.2
+noisereduce>=3.0
+torch>=2.8.0
+torchaudio>=2.8.0
+pyannote.audio>=4.0
 
 # APIs
-requests==2.33.1
-groq==1.2.0
+requests>=2.31
+groq>=1.2.0
 assemblyai
 
 # Web framework
-fastapi==0.115.12
-uvicorn[standard]==0.34.2
-python-multipart==0.0.20
+fastapi>=0.115
+uvicorn[standard]>=0.34
+python-multipart>=0.0.20
 
 # Configuration
-python-dotenv==1.2.2
+python-dotenv>=1.2

@@ -15,17 +15,41 @@ def split_into_sentences(text: str) -> list[str]:
 
     return sentences
 
+def smooth_adjacent_utterances(utterances: list[dict], max_gap_ms: int = 500) -> list[dict]:
+    """
+    Merge consecutive utterances from the SAME speaker if the pause between them is <= max_gap_ms.
+    Eliminates micro-fragmentation caused by STT/VAD engine pauses.
+    """
+    if not utterances:
+        return []
+
+    smoothed = [utterances[0].copy()]
+
+    for curr in utterances[1:]:
+        prev = smoothed[-1]
+        same_speaker = curr.get("speaker") == prev.get("speaker")
+        gap_ms = curr.get("start", 0) - prev.get("end", 0)
+
+        if same_speaker and gap_ms <= max_gap_ms:
+            prev["text"] = f"{prev.get('text', '').strip()} {curr.get('text', '').strip()}".strip()
+            prev["end"] = max(prev.get("end", 0), curr.get("end", 0))
+        else:
+            smoothed.append(curr.copy())
+
+    return smoothed
+
+
 def chunk_utterances(transcript: dict, max_words: int = 30) -> dict:
     """
-    Split long utterances into sentence-level chunks.
+    Split long utterances into sentence-level chunks while merging micro-fragmented turns.
     Preserves speaker, timestamps, and all original fields.
-    
-    Any utterance longer than max_words gets split into sentences.
-    Short utterances are kept as-is.
     """
-    utterances = transcript.get("utterances", [])
-    if not utterances:
+    raw_utterances = transcript.get("utterances", [])
+    if not raw_utterances:
         return transcript
+
+    # Smooth micro-fragmented turns from the same speaker
+    utterances = smooth_adjacent_utterances(raw_utterances, max_gap_ms=500)
 
     chunked = []
 
@@ -53,8 +77,17 @@ def chunk_utterances(transcript: dict, max_words: int = 30) -> dict:
             i += 1
         sentences = merged_sentences
 
-        if len(sentences) <= 1:
-            # can't split further, keep as is
+        final_sentences = []
+        for s in sentences:
+            if len(s.split()) > max_words:
+                words = s.split()
+                for j in range(0, len(words), max_words):
+                    final_sentences.append(" ".join(words[j:j+max_words]))
+            else:
+                final_sentences.append(s)
+        sentences = final_sentences
+
+        if not sentences:
             chunked.append(utt)
             continue
 
@@ -90,6 +123,9 @@ def chunk_utterances(transcript: dict, max_words: int = 30) -> dict:
         f"Chunking complete: {len(utterances)} utterances "
         f"→ {len(chunked)} chunks"
     )
+
+    # sort chunks by timestamp to interleave them properly
+    chunked = sorted(chunked, key=lambda c: c.get("start", 0))
 
     # rebuild transcript text
     result = transcript.copy()

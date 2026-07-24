@@ -77,14 +77,14 @@ def _run_analysis(job_id: str) -> None:
         # ── Transcription (with caching) ───────────────────────────────────
         job_store.update_status(job_id, JobStatus.TRANSCRIBING, "Transcribing & Diarizing")
         file_hash = hash_file(clean_path)
-        cache_key = f"{file_hash}_{job.provider}_{job.language_mode}"
+        cache_key = f"{file_hash}_{job.provider}"
         transcript = cache_get(cache_key, namespace="transcription")
 
         if transcript is None:
             transcript = transcribe_audio(
                 clean_path,
                 provider=job.provider,
-                language_mode=job.language_mode,
+                speakers_expected=job.speakers_expected,
             )
             cache_set(cache_key, transcript, namespace="transcription")
         else:
@@ -129,7 +129,7 @@ def _run_analysis(job_id: str) -> None:
         quality = compute_quality_score(participation, interruptions, sentiment, intelligence)
 
         # ── Recap ──────────────────────────────────────────────────────────
-        recap_md = render_recap(intelligence, job.meeting_title)
+        recap_md = render_recap(intelligence, job.meeting_title, topics=topics)
 
         # ── Save results ───────────────────────────────────────────────────
         results = {
@@ -174,11 +174,11 @@ async def analyze(
     audio: UploadFile = File(...),
     meeting_title: str = Form("Meeting"),
     provider: str = Form("assemblyai"),
-    language_mode: str = Form("codemix"),
     skip_preprocess: bool = Form(False),
     skip_correction: bool = Form(False),
     skip_sentiment: bool = Form(False),
     skip_extraction: bool = Form(False),
+    speakers_expected: int = Form(0),
 ):
     """Accept an audio file upload and start an async analysis job."""
     ext = Path(audio.filename).suffix.lower()
@@ -200,11 +200,11 @@ async def analyze(
         audio_filename=audio.filename,
         audio_path=str(dest),
         provider=provider,
-        language_mode=language_mode,
         skip_preprocess=skip_preprocess,
         skip_correction=skip_correction,
         skip_sentiment=skip_sentiment,
         skip_extraction=skip_extraction,
+        speakers_expected=speakers_expected if speakers_expected > 0 else None,
     )
 
     # Start background thread

@@ -1,0 +1,24 @@
+{
+  "venvPath": "/Users/kartikeyagrawal/Desktop/ML-Projects/meeting-intelligence",
+  "venv": "venv",
+  "pythonVersion": "3.14",
+  "pythonPlatform": "Darwin",
+  "extraPaths": [
+    "/Users/kartikeyagrawal/Desktop/ML-Projects/meeting-intelligence/src"
+  ],
+  "typeCheckingMode": "off",
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "reportUndefinedVariable": "none",
+  "reportPossiblyUnbound": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportOperatorIssue": "none",
+  "reportCallIssue": "none",
+  "reportReturnType": "none",
+  "reportArgumentType": "none",
+  "reportIndexIssue": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportOptionalSubscript": "none",
+  "reportOptionalCall": "none",
+  "reportOptionalIterable": "none"
+}

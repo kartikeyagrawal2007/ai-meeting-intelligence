@@ -1,11 +1,11 @@
 import os
-import json
 import math
+import shutil
 import subprocess
 import tempfile
-from groq import Groq
-from utils.config import GROQ_API_KEY
-from utils.logger import get_logger
+from groq import Groq  # type: ignore[import-untyped]
+from utils.config import GROQ_API_KEY  # type: ignore[import-not-found]
+from utils.logger import get_logger  # type: ignore[import-not-found]
 
 log = get_logger(__name__)
 
@@ -21,58 +21,69 @@ class GroqWhisperProvider:
     def _get_file_size(self, path: str) -> int:
         return os.path.getsize(path)
 
-    def _split_audio(self, audio_path: str, chunk_minutes: int = 10) -> list[str]:
-        """Split audio into chunks for large files."""
+    def _split_audio(self, audio_path: str, chunk_minutes: int = 10) -> tuple[list[str], str]:
+        """Split audio into chunks for large files.
+
+        Returns (chunk_paths, tmpdir) — the caller is responsible for
+        calling shutil.rmtree(tmpdir) once the chunks are no longer needed.
+        """
         log.info(f"Splitting audio into {chunk_minutes} minute chunks...")
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # get duration
-            result = subprocess.run([
-                "ffprobe", "-v", "quiet",
-                "-show_entries", "format=duration",
-                "-of", "csv=p=0",
-                audio_path
-            ], capture_output=True, text=True)
+        # Use mkdtemp so the directory (and chunk files) survive past this method.
+        tmpdir = tempfile.mkdtemp(prefix="groq_chunks_")
 
-            duration = float(result.stdout.strip())
-            chunk_seconds = chunk_minutes * 60
-            num_chunks = math.ceil(duration / chunk_seconds)
+        result = subprocess.run([
+            "ffprobe", "-v", "quiet",
+            "-show_entries", "format=duration",
+            "-of", "csv=p=0",
+            audio_path
+        ], capture_output=True, text=True)
 
-            log.info(f"Audio duration: {duration:.0f}s → {num_chunks} chunks")
+        duration = float(result.stdout.strip())
+        chunk_seconds = chunk_minutes * 60
+        num_chunks = math.ceil(duration / chunk_seconds)
 
-            chunk_paths = []
-            for i in range(num_chunks):
-                start = i * chunk_seconds
-                chunk_path = os.path.join(tmpdir, f"chunk_{i:03d}.mp3")
+        log.info(f"Audio duration: {duration:.0f}s → {num_chunks} chunks")
 
-                subprocess.run([
-                    "ffmpeg", "-y",
-                    "-i", audio_path,
-                    "-ss", str(start),
-                    "-t", str(chunk_seconds),
-                    "-acodec", "libmp3lame",
-                    "-ar", "16000",
-                    "-ac", "1",
-                    chunk_path
-                ], capture_output=True)
+        chunk_paths = []
+        for i in range(num_chunks):
+            start = i * chunk_seconds
+            chunk_path = os.path.join(tmpdir, f"chunk_{i:03d}.mp3")
 
-                chunk_paths.append(chunk_path)
+            subprocess.run([
+                "ffmpeg", "-y",
+                "-i", audio_path,
+                "-ss", str(start),
+                "-t", str(chunk_seconds),
+                "-acodec", "libmp3lame",
+                "-ar", "16000",
+                "-ac", "1",
+                chunk_path
+            ], capture_output=True)
 
-            return chunk_paths, duration
+            chunk_paths.append(chunk_path)
 
-    def _transcribe_chunk(self, audio_path: str, offset_seconds: float = 0) -> list[dict]:
+        return chunk_paths, tmpdir
+
+    def _transcribe_chunk(
+        self, audio_path: str, offset_seconds: float = 0, language: str | None = None
+    ) -> list[dict]:
         """Transcribe a single audio chunk."""
         import time
+        response = None
         for attempt in range(4):
             try:
                 with open(audio_path, "rb") as f:
-                    response = self.client.audio.transcriptions.create(
+                    create_kwargs: dict = dict(
                         model=self.model,
                         file=f,
                         response_format="verbose_json",
-                        language="en",
-                        timestamp_granularities=["segment"]
+                        timestamp_granularities=["segment"],
+                        prompt="Technical meeting discussion with action items, decisions, project updates, and team names.",
                     )
+                    if language:
+                        create_kwargs["language"] = language
+                    response = self.client.audio.transcriptions.create(**create_kwargs)
                 break
             except Exception as e:
                 error_str = str(e)
@@ -83,6 +94,9 @@ class GroqWhisperProvider:
                     raise Exception(f"Groq API Error 403: Please check your VPN or network settings. {error_str}")
                 else:
                     raise
+
+        if response is None:
+            raise RuntimeError(f"All Groq retry attempts failed for chunk: {audio_path}")
 
         segments = []
         for seg in response.segments:
@@ -105,26 +119,28 @@ class GroqWhisperProvider:
 
         return segments
 
-    def transcribe(self, audio_path: str) -> dict:
-        log.info(f"Transcribing with Groq Whisper large-v3: {audio_path}")
+    def transcribe(self, audio_path: str, language: str | None = None) -> dict:
+        log.info(f"Transcribing with Groq Whisper large-v3: {audio_path} [lang={language or 'auto'}]")
 
         file_size = self._get_file_size(audio_path)
 
         if file_size <= MAX_FILE_SIZE_BYTES:
             # small file — transcribe directly
             log.info("File within size limit, transcribing directly...")
-            segments = self._transcribe_chunk(audio_path, offset_seconds=0)
+            segments = self._transcribe_chunk(audio_path, offset_seconds=0, language=language)
         else:
             # large file — split into chunks
             log.info(f"File too large ({file_size / 1024 / 1024:.1f}MB), splitting...")
-            chunk_paths, total_duration = self._split_audio(audio_path)
-
-            segments = []
-            for i, chunk_path in enumerate(chunk_paths):
-                offset = i * 10 * 60  # 10 minutes per chunk
-                log.info(f"Transcribing chunk {i+1}/{len(chunk_paths)}...")
-                chunk_segments = self._transcribe_chunk(chunk_path, offset)
-                segments.extend(chunk_segments)
+            chunk_paths, chunks_tmpdir = self._split_audio(audio_path)
+            try:
+                segments = []
+                for i, chunk_path in enumerate(chunk_paths):
+                    offset = i * 10 * 60  # 10 minutes per chunk
+                    log.info(f"Transcribing chunk {i+1}/{len(chunk_paths)}...")
+                    chunk_segments = self._transcribe_chunk(chunk_path, offset, language=language)
+                    segments.extend(chunk_segments)
+            finally:
+                shutil.rmtree(chunks_tmpdir, ignore_errors=True)
 
         # build utterances from segments
         utterances = []

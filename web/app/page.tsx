@@ -43,6 +43,7 @@ export default function UploadPage() {
   const [dragging, setDragging] = useState(false);
   const [title, setTitle] = useState("");
   const [provider, setProvider] = useState<"assemblyai" | "groq" | "pyannote">("assemblyai");
+  const [speakersExpected, setSpeakersExpected] = useState<number>(0);
   const [skipPreprocess, setSkipPreprocess] = useState(false);
   const [skipCorrection, setSkipCorrection] = useState(false);
   const [skipSentiment, setSkipSentiment] = useState(false);
@@ -72,6 +73,7 @@ export default function UploadPage() {
       const { job_id } = await uploadAudio(file, {
         meetingTitle: title || file.name.replace(/\.[^.]+$/, ""),
         provider,
+        speakersExpected,
         skipPreprocess,
         skipCorrection,
         skipSentiment,
@@ -88,9 +90,9 @@ export default function UploadPage() {
     b > 1_000_000 ? `${(b / 1_000_000).toFixed(1)} MB` : `${(b / 1024).toFixed(0)} KB`;
 
   const providerInfo = {
-    assemblyai: { label: "🎙 AssemblyAI",    desc: "Best accuracy — cloud diarization + transcription." },
-    groq:       { label: "⚡ Groq Whisper",  desc: "Fastest option. No speaker separation." },
-    pyannote:   { label: "🧠 PyAnnote AI",  desc: "Local on-device diarization (speaker-diarization-3.1 + segmentation-3.0) + Groq transcription. Best speaker accuracy." },
+    assemblyai: { label: "🎙 AssemblyAI",    desc: "Best accuracy — cloud diarization + transcription. Stereo recordings get perfect channel-based speaker separation." },
+    groq:       { label: "⚡ Groq Whisper",  desc: "Fastest option. Stereo recordings use channel-based diarization (Speaker A/B per channel)." },
+    pyannote:   { label: "🧠 PyAnnote AI",  desc: "Local on-device diarization (speaker-diarization-3.1 + segmentation-3.0) + Groq transcription." },
   };
 
   return (
@@ -208,6 +210,27 @@ export default function UploadPage() {
           </p>
         </div>
 
+
+        {/* Speakers hint */}
+        <div>
+          <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
+            Expected Speakers
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={0}
+              max={10}
+              value={speakersExpected || ""}
+              onChange={(e) => setSpeakersExpected(parseInt(e.target.value) || 0)}
+              placeholder="Auto-detect"
+              className="w-32 px-4 py-3 rounded-xl bg-[#111827] border border-[#1e293b] text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+            />
+            <p className="text-xs text-slate-500">
+              Hint the number of speakers for better diarization. Leave blank to auto-detect.
+            </p>
+          </div>
+        </div>
 
         {/* Skip flags */}
         <div>

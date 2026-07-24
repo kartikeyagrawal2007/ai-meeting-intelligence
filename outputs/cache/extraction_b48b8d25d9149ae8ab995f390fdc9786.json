@@ -1,0 +1,33 @@
+{
+  "cached_at": "2026-05-27T20:56:11.071970",
+  "namespace": "extraction",
+  "key": "b48b8d25d9149ae8ab995f390fdc9786",
+  "data": {
+    "action_items": [
+      {
+        "action": "check the gate management module",
+        "owner": "Speaker A",
+        "deadline": "no specific deadline mentioned",
+        "confidence": 0.8,
+        "source_quote": "So, sir, you can check the gate management module without society registration."
+      }
+    ],
+    "uncertain_action_items": [],
+    "decisions": [],
+    "uncertain_decisions": [],
+    "follow_ups": [
+      {
+        "topic": "society registration and handover process",
+        "reason": "the society has not been formed yet and the handover process is expected to take 2-3 months",
+        "owner": "Speaker B"
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What is the current status of the society formation and when will the handover process be completed?",
+        "asked_by": "Speaker B"
+      }
+    ],
+    "summary": "The meeting was about discussing the No Brokerhood application for a society, specifically the gate management and accounting management services, and the registration process for the society. The society has not been formed yet and the handover process is expected to take 2-3 months. The speaker from No Brokerhood offered a demonstration of the gate management module."
+  }
+}

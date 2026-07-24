@@ -22,8 +22,8 @@ def enhance_audio(input_wav: str, output_wav: str) -> bool:
         result = subprocess.run([
             "ffmpeg", "-y", "-i", input_wav,
             "-af", (
-                "highpass=f=200,"           # remove low freq rumble
-                "lowpass=f=3400,"           # keep speech frequencies only
+                "highpass=f=100,"           # remove low freq rumble
+                "lowpass=f=7500,"           # preserve full human vocal clarity (wideband)
                 "afftdn=nf=-25,"            # noise reduction
                 "equalizer=f=1000:width_type=o:width=2:g=3,"  # boost mid speech
                 "equalizer=f=3000:width_type=o:width=2:g=2,"  # boost clarity
@@ -45,10 +45,35 @@ def enhance_audio(input_wav: str, output_wav: str) -> bool:
         log.warning(f"Enhancement failed: {e}")
         return False
 
+
+def _get_channel_count(input_path: str) -> int:
+    """Return the number of audio channels in the file."""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "a:0",
+         "-show_entries", "stream=channels", "-of", "csv=p=0", input_path],
+        capture_output=True, text=True,
+    )
+    try:
+        return int(result.stdout.strip())
+    except ValueError:
+        return 1
+
+
 def preprocess_audio(input_path: str) -> str:
     log.info(f"Preprocessing audio: {input_path}")
 
-    # Step 1 — convert to wav (mono, 16kHz)
+    # Detect stereo so we can preserve it through preprocessing.
+    src_channels = _get_channel_count(input_path)
+    is_stereo = src_channels >= 2
+    log.info(
+        f"Source audio channels: {src_channels} — "
+        f"{'preserving stereo for channel-based diarization' if is_stereo else 'mono'}"
+    )
+
+    # ── Step 1: Convert to mono WAV for pipeline processing ──────────────
+    # VAD / noise-reduction / filters all require 1-D mono arrays.
+    # We always work in mono internally; for stereo we'll re-apply the
+    # VAD speech mask to the original stereo signal at the end.
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
         tmp_wav = tmp.name
 
@@ -58,30 +83,27 @@ def preprocess_audio(input_path: str) -> str:
         tmp_wav
     ], capture_output=True)
 
-    # Step 2 — resemble-enhance (neural audio enhancement)
-    # this handles 8kHz upsampling, noise removal, and clarity
+    # ── Step 2: ffmpeg audio enhancement (on mono working copy) ──────────
     enhanced_wav = tmp_wav.replace(".wav", "_enhanced.wav")
     enhancement_success = enhance_audio(tmp_wav, enhanced_wav)
 
     if enhancement_success:
-        # use enhanced audio for further processing
         working_wav = enhanced_wav
         sample_rate, data = wavfile.read(enhanced_wav)
     else:
-        # fallback to original converted wav
         working_wav = tmp_wav
         sample_rate, data = wavfile.read(tmp_wav)
 
     data = data.astype(np.float32)
 
-    # Step 3 — VAD (keep only speech segments)
+    # ── Step 3: VAD — keep only speech segments ───────────────────────────
     log.info("Loading VAD model...")
     vad_model, vad_utils = load_vad_model()
     audio_tensor = torch.FloatTensor(data / 32768.0)
     segments = get_speech_segments(audio_tensor, sample_rate, vad_model, vad_utils)
     data = keep_only_speech(data, segments, sample_rate)
 
-    # Step 4 — traditional noise reduction on top
+    # ── Step 4: Noise reduction ───────────────────────────────────────────
     data = remove_impulse_noise(data, sample_rate)
     noise_sample = data[:int(sample_rate * 0.5)]
     data = nr.reduce_noise(
@@ -90,23 +112,64 @@ def preprocess_audio(input_path: str) -> str:
         n_fft=1024, hop_length=256,
     )
 
-    # Step 5 — filters
+    # ── Step 5: Filters ───────────────────────────────────────────────────
     data = bandpass_filter(data)
     data = suppress_mouth_noise(data, sample_rate)
     data = smooth_and_normalize(data)
 
-    # Step 6 — save clean audio
-    clean_wav = tmp_wav.replace(".wav", "_clean.wav")
-    wavfile.write(clean_wav, sample_rate, data)
-
+    # ── Step 6: Save clean audio ──────────────────────────────────────────
     output_path = input_path.rsplit(".", 1)[0] + "_clean.mp3"
-    subprocess.run(["ffmpeg", "-y", "-i", clean_wav, output_path], capture_output=True)
 
-    # cleanup temp files
+    if is_stereo:
+        # For stereo sources: save the mono-processed audio as a temp file,
+        # then use ffmpeg to apply the same duration trim to the stereo source
+        # while mixing the cleaned mono back. The simplest approach that
+        # preserves channel identity: write mono clean, then re-encode the
+        # original stereo with matched duration using ffmpeg pan filters
+        # for enhancement (no VAD trimming on stereo path to avoid offset issues).
+        # Strategy: enhance the original stereo with ffmpeg filters only,
+        # no VAD trimming (call recordings are usually continuous speech anyway).
+        log.info("Stereo source: applying ffmpeg enhancement to stereo original (no VAD trim).")
+        stereo_enhanced_wav = tmp_wav.replace(".wav", "_stereo_enhanced.wav")
+        result = subprocess.run([
+            "ffmpeg", "-y", "-i", input_path,
+            "-af", (
+                "highpass=f=100,"
+                "lowpass=f=7500,"
+                "afftdn=nf=-25,"
+                "equalizer=f=1000:width_type=o:width=2:g=3,"
+                "equalizer=f=3000:width_type=o:width=2:g=2,"
+                "acompressor=threshold=0.1:ratio=4:attack=5:release=50,"
+                "volume=3.0"
+            ),
+            "-ar", str(SAMPLE_RATE),
+            stereo_enhanced_wav,
+        ], capture_output=True)
+        if result.returncode == 0:
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", stereo_enhanced_wav, output_path],
+                capture_output=True
+            )
+            os.unlink(stereo_enhanced_wav)
+            log.info(f"Stereo clean audio saved to: {output_path}")
+        else:
+            # fallback: just copy original to output
+            log.warning("Stereo enhancement failed — using original audio.")
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", input_path, "-ar", str(SAMPLE_RATE), output_path],
+                capture_output=True
+            )
+    else:
+        # Mono: write processed data to wav then encode to mp3
+        clean_wav = tmp_wav.replace(".wav", "_clean.wav")
+        wavfile.write(clean_wav, sample_rate, data)
+        subprocess.run(["ffmpeg", "-y", "-i", clean_wav, output_path], capture_output=True)
+        os.unlink(clean_wav)
+        log.info(f"Clean audio saved to: {output_path}")
+
+    # Cleanup temp files
     os.unlink(tmp_wav)
     if enhancement_success and os.path.exists(enhanced_wav):
         os.unlink(enhanced_wav)
-    os.unlink(clean_wav)
 
-    log.info(f"Clean audio saved to: {output_path}")
     return output_path

@@ -1,5 +1,6 @@
 import sys
 import os
+import concurrent.futures
 
 from utils.chunker import chunk_utterances
 from intelligence.sentiment import analyze_sentiment
@@ -13,6 +14,7 @@ from transcription.formatter import format_transcript
 
 from intelligence.extractor import extract_intelligence
 from intelligence.correction import correct_transcript
+from intelligence.topic_segmenter import segment_topics, segments_to_dict
 
 from output.recap import render_recap
 from output.export_json import export_to_json
@@ -28,7 +30,8 @@ def analyze_meeting(
     skip_preprocess: bool = False,
     skip_correction: bool = False,
     skip_sentiment: bool = False,
-    provider: str = "assemblyai"
+    provider: str = "assemblyai",
+    speakers_expected: int | None = None,
 ) -> dict:
 
     # -----------------------------
@@ -43,7 +46,7 @@ def analyze_meeting(
     # -----------------------------
     # Transcription
     # -----------------------------
-    transcript = transcribe_audio(clean_path, provider=provider)
+    transcript = transcribe_audio(clean_path, provider=provider, speakers_expected=speakers_expected)
 
     # -----------------------------
     # Utterance chunking
@@ -101,13 +104,22 @@ def analyze_meeting(
         print("  No interruptions detected")
 
     # -----------------------------
-    # Sentiment analysis
+    # Intelligence Extraction & Sentiment Analysis
+    # (Running in parallel)
     # -----------------------------
-    if skip_sentiment:
-        log.info("Skipping sentiment analysis")
-        sentiment = {}
-    else:
-        sentiment = analyze_sentiment(transcript)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_intelligence = executor.submit(extract_intelligence, transcript)
+        
+        if skip_sentiment:
+            log.info("Skipping sentiment analysis")
+            future_sentiment = None
+        else:
+            future_sentiment = executor.submit(analyze_sentiment, transcript)
+
+        intelligence = future_intelligence.result()
+        sentiment = future_sentiment.result() if future_sentiment else {}
+
+    if not skip_sentiment:
         print("\n=== SENTIMENT ANALYSIS ===")
         for speaker, summary in sentiment.get("speaker_summary", {}).items():
             print(f"\nSpeaker {speaker}")
@@ -118,11 +130,6 @@ def analyze_meeting(
             print(f"  Confused          : {summary['flags']['confused_count']} times")
             print(f"  Agreeable         : {summary['flags']['agreeable_count']} times")
             print(f"  Decisive          : {summary['flags']['decisive_count']} times")
-
-    # -----------------------------
-    # Intelligence extraction
-    # -----------------------------
-    intelligence = extract_intelligence(transcript)
 
     # -----------------------------
     # Meeting quality scoring
@@ -138,9 +145,10 @@ def analyze_meeting(
     print(format_quality_report(quality))
 
     # -----------------------------
-    # Generate recap
+    # Topic segmentation & Recap
     # -----------------------------
-    recap = render_recap(intelligence, meeting_title)
+    topics_dict = segments_to_dict(segment_topics(transcript))
+    recap = render_recap(intelligence, meeting_title, topics=topics_dict)
 
     print("\n--- MEETING RECAP ---")
     print(recap)
@@ -194,7 +202,8 @@ if __name__ == "__main__":
         print(
             "Usage: python main.py <audio_file> "
             "[meeting_title] [--skip-preprocess] [--skip-correction] "
-            "[--skip-sentiment] [--groq] [--pyannote]"
+            "[--skip-sentiment] [--groq] [--pyannote] [--speakers N]\n"
+            "Providers: assemblyai (default), groq, pyannote"
         )
         sys.exit(1)
 
@@ -211,6 +220,16 @@ if __name__ == "__main__":
     else:
         provider = "assemblyai"
 
+    # Parse --speakers N
+    speakers_expected: int | None = None
+    for i, arg in enumerate(sys.argv):
+        if arg == "--speakers" and i + 1 < len(sys.argv):
+            try:
+                speakers_expected = int(sys.argv[i + 1])
+            except ValueError:
+                print(f"Invalid --speakers value: {sys.argv[i+1]}")
+                sys.exit(1)
+
     if not os.path.exists(audio_path):
         print(f"File not found: {audio_path}")
         sys.exit(1)
@@ -221,5 +240,6 @@ if __name__ == "__main__":
         skip_preprocess,
         skip_correction,
         skip_sentiment,
-        provider
+        provider,
+        speakers_expected,
     )
